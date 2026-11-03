@@ -1,0 +1,181 @@
+---
+import { render } from 'astro:content';
+import ArrowLeft from '@phosphor-icons/core/assets/regular/arrow-left.svg';
+import ArrowRight from '@phosphor-icons/core/assets/regular/arrow-right.svg';
+import PencilSimple from '@phosphor-icons/core/assets/regular/pencil-simple.svg';
+import Docs from '../../layouts/Docs.astro';
+import { getAllDocs, getDocSections, getNeighbours } from '../../lib/docs.ts';
+import { withBase } from '../../lib/doc-paths.ts';
+
+export async function getStaticPaths() {
+	const docs = await getAllDocs();
+	return docs.map((doc) => ({ params: { slug: doc.id }, props: { id: doc.id } }));
+}
+
+const { id } = Astro.props;
+const sections = await getDocSections();
+const doc = (await getAllDocs()).find((d) => d.id === id)!;
+const section = sections.find((s) => s.key === doc.section)!;
+const { Content, headings } = await render(doc.entry);
+const { prev, next } = await getNeighbours(id);
+const docsHome = withBase(import.meta.env.BASE_URL, 'docs/');
+---
+
+<Docs title={doc.title} description={doc.description} sections={sections} currentId={doc.id} headings={headings}>
+	<nav class="crumbs" aria-label="Breadcrumb">
+		<ol>
+			<li><a href={docsHome}>Docs</a></li>
+			<li><span>{section.label}</span></li>
+		</ol>
+	</nav>
+
+	<article class="prose">
+		{!doc.hasH1 && <h1>{doc.title}</h1>}
+		<Content />
+	</article>
+
+	<footer class="doc-footer">
+		<a class="edit" href={doc.editUrl} rel="noopener">
+			<PencilSimple width={16} height={16} aria-hidden="true" />
+			Edit <code>{doc.repoPath.replace(/^docs\//, '')}</code> on GitHub
+		</a>
+
+		<nav class="pager" aria-label="Previous and next">
+			{
+				prev ? (
+					<a class="prev" href={prev.href} rel="prev">
+						<span class="dir">
+							<ArrowLeft width={14} height={14} aria-hidden="true" /> Previous
+						</span>
+						<span class="name">{prev.navLabel}</span>
+					</a>
+				) : (
+					<span />
+				)
+			}
+			{
+				next && (
+					<a class="next" href={next.href} rel="next">
+						<span class="dir">
+							Next <ArrowRight width={14} height={14} aria-hidden="true" />
+						</span>
+						<span class="name">{next.navLabel}</span>
+					</a>
+				)
+			}
+		</nav>
+	</footer>
+</Docs>
+
+<style>
+	.crumbs ol {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+		margin: 0 0 20px;
+		padding: 0;
+		list-style: none;
+		font-family: var(--font-mono);
+		font-size: 0.78rem;
+		color: var(--muted);
+	}
+
+	.crumbs li + li::before {
+		content: '/';
+		margin-right: 8px;
+		color: var(--faint);
+	}
+
+	.crumbs a {
+		color: var(--muted);
+		text-decoration: none;
+	}
+
+	.crumbs a:hover {
+		color: var(--teal);
+	}
+
+	.doc-footer {
+		max-width: 76ch;
+		margin-top: 64px;
+		padding-top: 24px;
+		border-top: 1px solid var(--line);
+	}
+
+	.edit {
+		display: inline-flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 8px;
+		min-height: 44px;
+		color: var(--muted);
+		font-size: 0.88rem;
+		text-decoration: none;
+	}
+
+	.edit code {
+		color: var(--text-2);
+		font-size: 0.82rem;
+	}
+
+	.edit:hover,
+	.edit:hover code {
+		color: var(--teal);
+	}
+
+	.pager {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 16px;
+		margin-top: 24px;
+	}
+
+	.pager a {
+		display: grid;
+		gap: 4px;
+		padding: 16px 18px;
+		border: 1px solid var(--line);
+		border-radius: var(--radius-panel);
+		text-decoration: none;
+		transition: border-color 160ms var(--ease-out);
+	}
+
+	.pager .next {
+		grid-column: 2;
+		text-align: right;
+	}
+
+	.dir {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		font-family: var(--font-mono);
+		font-size: 0.74rem;
+		color: var(--muted);
+	}
+
+	.next .dir {
+		justify-content: flex-end;
+	}
+
+	.name {
+		color: var(--text);
+		font-weight: 550;
+		line-height: 1.35;
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		.pager a:hover {
+			border-color: var(--teal-line);
+		}
+	}
+
+	@media (max-width: 560px) {
+		.pager {
+			grid-template-columns: 1fr;
+		}
+		.pager .next {
+			grid-column: 1;
+		}
+	}
+</style>

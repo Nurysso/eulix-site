@@ -1,0 +1,44 @@
+---
+import { withBase } from '../lib/doc-paths.ts';
+import Base from '../layouts/Base.astro';
+
+const base = import.meta.env.BASE_URL;
+---
+
+<Base title="Page not found">
+	<section class="container nf">
+		<p class="mono code">404</p>
+		<h1>No symbol by that name.</h1>
+		<p class="lead">The page you asked for isn't in the index. It may have moved when the docs were reorganised.</p>
+		<div class="actions">
+			<a class="btn btn-primary" href={withBase(base, '')}>Back to home</a>
+			<a class="btn btn-ghost" href={withBase(base, 'docs/')}>Browse the docs</a>
+		</div>
+	</section>
+</Base>
+
+<style>
+	.nf {
+		padding-block: clamp(80px, 14vw, 160px);
+	}
+	.code {
+		color: var(--teal);
+		font-size: 0.85rem;
+	}
+	h1 {
+		margin-top: 16px;
+		font-size: clamp(2.2rem, 1.6rem + 2.6vw, 3.4rem);
+		letter-spacing: -0.04em;
+	}
+	.lead {
+		margin-top: 16px;
+		max-width: 52ch;
+		color: var(--text-2);
+	}
+	.actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 12px;
+		margin-top: 32px;
+	}
+</style>

@@ -1,0 +1,480 @@
+---
+// The retrieval stack: two engines in eulix-cli, two embedders in eulix-embed.
+// Only etiya talks to an embedder; EHNAS reads no vectors at all.
+import CloudSlash from '@phosphor-icons/core/assets/regular/cloud-slash.svg';
+import Cpu from '@phosphor-icons/core/assets/regular/cpu.svg';
+import GitFork from '@phosphor-icons/core/assets/regular/git-fork.svg';
+import MagnifyingGlassPlus from '@phosphor-icons/core/assets/regular/magnifying-glass-plus.svg';
+import Shuffle from '@phosphor-icons/core/assets/regular/shuffle.svg';
+import { getComponent, versionOf } from '../../lib/components.ts';
+import StatusChip from '../StatusChip.astro';
+
+const cli = getComponent('eulix-cli')!;
+const embed = getComponent('eulix-embed')!;
+
+const ehnasMechanisms = [
+  {
+    icon: MagnifyingGlassPlus,
+    title: 'Query expansion',
+    text: 'The top keyword hits vote on related terms, then a second pass runs on them.',
+  },
+  {
+    icon: GitFork,
+    title: 'Cross-language twins',
+    text: 'The same code in two languages is matched by structure, not by name.',
+  },
+  {
+    icon: Shuffle,
+    title: 'Random walk',
+    text: 'Walkers move over symbol, call and keyword links from the strongest hits.',
+  },
+];
+---
+
+<section class="section" id="engines" aria-labelledby="engines-title">
+  <div class="container">
+    <h2 id="engines-title" class="section-title reveal">The retrieval stack.</h2>
+    <p class="section-lead reveal">
+      One setting picks the engine. Both share the index, the lexical channels and the call graph.
+      They differ in how they reach code that shares no words with your question.
+    </p>
+
+    <div class="tier reveal">
+      <div class="tier-head">
+        <h3>Retrieval engines</h3>
+        <code class="pkg">eulix-cli</code>
+        <StatusChip status={cli.status} version={versionOf('eulix-cli')} size="sm" />
+      </div>
+
+      <div class="pair">
+        <article class="card engine ehnas" aria-labelledby="ehnas-title">
+          <header>
+            <h4 id="ehnas-title">EHNAS</h4>
+            <p class="expansion">Exact · Hierarchical · Node · Structure</p>
+          </header>
+          <ul class="zeros" aria-label="Requirements">
+            <li><span class="zero">0</span> embeddings</li>
+            <li><Cpu width={14} height={14} aria-hidden="true" /> 0 GPU</li>
+            <li><CloudSlash width={14} height={14} aria-hidden="true" /> 0 network</li>
+          </ul>
+          <ul class="mechanisms">
+            {
+              ehnasMechanisms.map((m) => (
+                <li>
+                  <m.icon width={18} height={18} aria-hidden="true" />
+                  <div>
+                    <p class="m-title">{m.title}</p>
+                    <p class="m-text">{m.text}</p>
+                  </div>
+                </li>
+              ))
+            }
+          </ul>
+          <p class="fact"><code>eulix analyze</code> skips the embedding step entirely.</p>
+          <pre
+            class="config"><code><span class="c-sec">[project]</span>
+<span class="c-key">engine</span> = <span class="c-str">"ehnas"</span></code></pre>
+        </article>
+
+        <article class="card engine etiya" aria-labelledby="etiya-title">
+          <header>
+            <h4 id="etiya-title">ETIYA</h4>
+            <p class="expansion">
+              Embedding-aware · Topological · Indexing for Your · Architecture
+            </p>
+          </header>
+          <p class="lede">
+            Embeds each question through the local embedding server and searches by meaning,
+            alongside the same lexical channels.
+          </p>
+          <dl class="facts">
+            <div>
+              <dt>Best for</dt>
+              <dd>Dense semantic matches: questions worded nothing like the code.</dd>
+            </div>
+            <div>
+              <dt>Search</dt>
+              <dd>Cosine over stored vectors, IVF-indexed above 50,000 chunks.</dd>
+            </div>
+            <div>
+              <dt>Selection</dt>
+              <dd>
+                Query MMR: relevance to the question, minus overlap with what is already picked.
+              </dd>
+            </div>
+          </dl>
+          <pre
+            class="config"><code><span class="c-sec">[project]</span>
+<span class="c-key">engine</span> = <span class="c-str">"etiya"</span></code></pre>
+        </article>
+      </div>
+    </div>
+
+    <div class="links" aria-hidden="true">
+      <div class="link link-none"><span>no embedder</span></div>
+      <div class="link link-live"><span>query vectors · embedding server</span></div>
+    </div>
+
+    <div class="tier reveal">
+      <div class="tier-head">
+        <h3>Embedders</h3>
+        <code class="pkg">eulix-embed</code>
+        <StatusChip status={embed.status} version={versionOf('eulix-embed')} size="sm" />
+        <span class="used-by">used by etiya</span>
+      </div>
+
+      <div class="pair">
+        <article class="card embedder" aria-labelledby="onnx-title">
+          <header>
+            <h4 id="onnx-title">ONNX Runtime</h4>
+            <span class="tag tag-default">default</span>
+          </header>
+          <p class="lede">Downloaded at install time. Fast, local inference.</p>
+          <ul class="providers" aria-label="Execution providers">
+            <li>CPU</li>
+            <li>CUDA</li>
+            <li>ROCm</li>
+            <li>CoreML</li>
+          </ul>
+          <pre
+            class="config"><code><span class="c-sec">[embeddings]</span>
+<span class="c-key">engine</span> = <span class="c-str">"onnx"</span></code></pre>
+        </article>
+
+        <article class="card embedder" aria-labelledby="torch-title">
+          <header>
+            <h4 id="torch-title">PyTorch</h4>
+            <span class="tag">optional</span>
+          </header>
+          <p class="lede">Optional backend. Model downloads happen at runtime.</p>
+          <ul class="providers" aria-label="Devices">
+            <li>CUDA</li>
+            <li>ROCm</li>
+            <li>MPS</li>
+            <li>CPU</li>
+          </ul>
+          <pre
+            class="config"><code><span class="c-sec">[embeddings]</span>
+<span class="c-key">engine</span> = <span class="c-str">"torch"</span></code></pre>
+        </article>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .tier {
+    margin-top: 48px;
+  }
+
+  .links + .tier {
+    margin-top: 0;
+  }
+
+  .tier-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    margin-bottom: 14px;
+  }
+
+  h3 {
+    font-size: 1.05rem;
+    letter-spacing: -0.015em;
+  }
+
+  .pkg {
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+
+  .used-by {
+    color: var(--faint);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+  }
+
+  .pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .card {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: clamp(20px, 2.6vw, 28px);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-panel);
+    background: var(--bg-raised);
+  }
+
+  .card header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+  }
+
+  h4 {
+    font-family: var(--font-mono);
+    font-size: 1.3rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .expansion {
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+  }
+
+  .ehnas {
+    border-color: var(--teal-line);
+    background:
+      radial-gradient(ellipse 80% 50% at 0% 0%, rgb(94 234 212 / 0.08), transparent 70%),
+      var(--bg-raised);
+  }
+
+  .ehnas h4 {
+    color: var(--teal);
+  }
+
+  .etiya {
+    border-color: var(--violet-line);
+    background:
+      radial-gradient(ellipse 80% 50% at 0% 0%, rgb(167 139 250 / 0.09), transparent 70%),
+      var(--bg-raised);
+  }
+
+  .etiya h4 {
+    color: var(--lilac);
+  }
+
+  .zeros {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .zeros li {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border: 1px solid var(--teal-line);
+    border-radius: 999px;
+    background: var(--teal-wash);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+  }
+
+  .zeros :global(svg),
+  .zero {
+    color: var(--teal);
+  }
+
+  .mechanisms {
+    display: grid;
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .mechanisms li {
+    display: flex;
+    gap: 12px;
+  }
+
+  .mechanisms :global(svg) {
+    flex: none;
+    margin-top: 2px;
+    color: var(--teal);
+  }
+
+  .m-title {
+    color: var(--text);
+    font-weight: 600;
+    font-size: 0.92rem;
+  }
+
+  .m-text,
+  .lede {
+    color: var(--text-2);
+    font-size: 0.9rem;
+    line-height: 1.55;
+  }
+
+  .fact {
+    color: var(--muted);
+    font-size: 0.86rem;
+  }
+
+  .fact code {
+    color: var(--gold);
+    font-size: 0.92em;
+  }
+
+  .facts {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+  }
+
+  .facts div {
+    display: grid;
+    grid-template-columns: 6.5em minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  dt {
+    color: var(--muted);
+    font-size: 0.82rem;
+  }
+
+  dd {
+    margin: 0;
+    color: var(--text-2);
+    font-size: 0.88rem;
+    line-height: 1.5;
+  }
+
+  .config {
+    margin: auto 0 0;
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-control);
+    background: var(--bg-inset);
+    font-size: 0.8rem;
+    line-height: 1.6;
+  }
+
+  .c-sec {
+    color: var(--violet);
+  }
+
+  .c-key {
+    color: var(--lilac);
+  }
+
+  .c-str {
+    color: var(--teal);
+  }
+
+  /* Connector between the tiers: EHNAS stops, etiya reaches the embedder. */
+  .links {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    height: 72px;
+  }
+
+  .link {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .link::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 0;
+    border-left: 1.5px solid var(--violet-line);
+  }
+
+  .link-live::before {
+    bottom: 0;
+    border-left-color: var(--violet);
+  }
+
+  .link-none::before {
+    height: 22px;
+    border-left-style: dashed;
+    border-left-color: var(--line-strong);
+  }
+
+  .link span {
+    position: relative;
+    padding: 2px 10px;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    background: var(--bg);
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+  }
+
+  .link-none span {
+    margin-top: 22px;
+    border-style: dashed;
+    color: var(--faint);
+  }
+
+  .link-live span {
+    border-color: var(--violet-line);
+    color: var(--lilac);
+  }
+
+  .embedder h4 {
+    font-family: var(--font-sans);
+    font-size: 1.15rem;
+  }
+
+  .tag {
+    padding: 1px 8px;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+  }
+
+  .tag-default {
+    border-color: var(--teal-line);
+    background: var(--teal-wash);
+    color: var(--teal);
+  }
+
+  .providers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .providers li {
+    padding: 2px 9px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    color: var(--text-2);
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+  }
+
+  @media (max-width: 860px) {
+    .pair {
+      grid-template-columns: 1fr;
+    }
+    /* Stacked cards: the connector only needs to show etiya's link. */
+    .links {
+      grid-template-columns: 1fr;
+      height: 64px;
+    }
+    .link-none {
+      display: none;
+    }
+  }
+</style>

@@ -1,0 +1,151 @@
+---
+import type { MarkdownHeading } from 'astro';
+import SidebarSimple from '@phosphor-icons/core/assets/regular/sidebar-simple.svg';
+import '../styles/prose.css';
+import Sidebar from '../components/docs/Sidebar.astro';
+import Toc from '../components/docs/Toc.astro';
+import type { DocSection } from '../lib/docs.ts';
+import Base from './Base.astro';
+
+interface Props {
+	title: string;
+	description?: string;
+	sections: DocSection[];
+	currentId?: string;
+	headings?: MarkdownHeading[];
+}
+
+const { title, description, sections, currentId, headings = [] } = Astro.props;
+const hasToc = headings.filter((h) => h.depth === 2 || h.depth === 3).length > 1;
+---
+
+<Base title={title} description={description} current="docs" type="article">
+	<div class:list={['docs-shell', 'container', { 'has-toc': hasToc }]}>
+		<button type="button" class="menu-toggle" aria-expanded="false" aria-controls="docs-sidebar">
+			<SidebarSimple width={18} height={18} aria-hidden="true" />
+			<span>Browse docs</span>
+		</button>
+
+		<aside class="docs-sidebar" id="docs-sidebar">
+			<Sidebar sections={sections} currentId={currentId} />
+		</aside>
+
+		<div class="docs-main">
+			<slot />
+		</div>
+
+		{
+			hasToc && (
+				<aside class="docs-toc">
+					<Toc headings={headings} />
+				</aside>
+			)
+		}
+	</div>
+</Base>
+
+<script>
+	import '../scripts/docs.ts';
+</script>
+
+<style>
+	.docs-shell {
+		display: grid;
+		grid-template-columns: 248px minmax(0, 1fr);
+		column-gap: 48px;
+		align-items: start;
+	}
+
+	.docs-shell.has-toc {
+		grid-template-columns: 248px minmax(0, 1fr) 208px;
+	}
+
+	.docs-sidebar,
+	.docs-toc {
+		position: sticky;
+		top: var(--header-h);
+		max-height: calc(100dvh - var(--header-h));
+		overflow-y: auto;
+		overscroll-behavior: contain;
+		scrollbar-width: thin;
+		scrollbar-color: var(--line-strong) transparent;
+	}
+
+	.docs-sidebar {
+		border-right: 1px solid var(--line);
+		padding-right: 16px;
+		margin-right: -16px;
+	}
+
+	.docs-main {
+		min-width: 0;
+		padding-block: 40px 96px;
+	}
+
+	.menu-toggle {
+		display: none;
+	}
+
+	@media (max-width: 1180px) {
+		.docs-shell.has-toc {
+			grid-template-columns: 232px minmax(0, 1fr);
+		}
+		.docs-toc {
+			display: none;
+		}
+	}
+
+	@media (max-width: 860px) {
+		.docs-shell,
+		.docs-shell.has-toc {
+			display: block;
+		}
+
+		.menu-toggle {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			min-height: 44px;
+			margin-top: 16px;
+			padding: 0 14px;
+			border: 1px solid var(--line-strong);
+			border-radius: var(--radius-control);
+			background: var(--bg-raised);
+			color: var(--text-2);
+			font-size: 0.9rem;
+			cursor: pointer;
+		}
+
+		.menu-toggle[aria-expanded='true'] {
+			color: var(--text);
+			border-color: var(--muted);
+		}
+
+		.docs-sidebar {
+			position: static;
+			max-height: none;
+			margin: 12px 0 0;
+			padding: 0 8px;
+			border: 1px solid var(--line);
+			border-radius: var(--radius-panel);
+			background: var(--bg-raised);
+			display: none;
+		}
+
+		.docs-sidebar[data-open='true'] {
+			display: block;
+		}
+
+		:global(html:not(.js)) .docs-sidebar {
+			display: block;
+		}
+
+		:global(html:not(.js)) .menu-toggle {
+			display: none;
+		}
+
+		.docs-main {
+			padding-top: 24px;
+		}
+	}
+</style>

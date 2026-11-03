@@ -1,0 +1,434 @@
+---
+import { Code } from 'astro:components';
+import { Image } from 'astro:assets';
+import ArrowUpRight from '@phosphor-icons/core/assets/regular/arrow-up-right.svg';
+import { siGo, siHtml5, siPython, siRust, type SimpleIcon } from 'simple-icons';
+import chatShot from '../../assets/screenshots/eulix-chat.png';
+import vizShot from '../../assets/screenshots/vizeulize.png';
+import { components, getComponent, versionOf } from '../../lib/components.ts';
+import { eulixShikiTheme } from '../../lib/markdown/shiki-theme.ts';
+import { MCP_STATUS, SITE } from '../../site.config.ts';
+import BrandIcon from '../BrandIcon.astro';
+import CopyButton from '../CopyButton.astro';
+import StatusChip from '../StatusChip.astro';
+
+const mcpConfig = `{
+  "mcpServers": {
+    "eulix": {
+      "command": "eulix",
+      "args": ["mcp"]
+    }
+  }
+}`;
+
+const mcpTools = ['query', 'query_with_cot', 'query_without_cot', 'set_repo_path'];
+const commands = ['init', 'analyze', 'chat', 'query', 'mcp', 'vizEulize', 'embed', 'history'];
+const lspFeatures = [
+	'outline',
+	'hover',
+	'go to definition',
+	'references',
+	'completion',
+	'rename',
+	'semantic tokens',
+	'call hierarchy',
+	'workspace symbols',
+	'diagnostics',
+];
+
+const languageIcon: Record<string, SimpleIcon> = { Go: siGo, Rust: siRust, Python: siPython, 'HTML/JS': siHtml5 };
+const repoPath = (path: string) => `${SITE.repoUrl}/tree/${SITE.branch}/${path}`;
+const status = (name: string) => getComponent(name)!.status;
+---
+
+<section class="section" id="ecosystem" aria-labelledby="eco-title">
+	<div class="container">
+		<h2 id="eco-title" class="section-title reveal">One index, five ways in.</h2>
+		<p class="section-lead reveal">
+			The CLI is one front end on a shared engine. Your terminal, your browser, your editor and your coding agent all
+			read the same local index.
+		</p>
+
+		<div class="bento">
+			<article class="cell shot-cell reveal" aria-labelledby="cli-title">
+				<div class="cell-head">
+					<h3 id="cli-title">eulix</h3>
+					<StatusChip status={status('eulix-cli')} version={versionOf('eulix-cli')} />
+				</div>
+				<p>The command line: query routing, retrieval, context building, the optional LLM layer and a chat UI.</p>
+				<ul class="commands" aria-label="Commands">
+					{commands.map((cmd) => <li class="mono">{cmd}</li>)}
+				</ul>
+				<div class="shot">
+					<Image
+						src={chatShot}
+						alt="The eulix chat interface answering how version 2 of the call graph is built, with a structured breakdown that cites functions and line ranges."
+						widths={[480, 720, 1080]}
+						sizes="(min-width: 1060px) 580px, calc(100vw - 32px)"
+					/>
+				</div>
+			</article>
+
+			<article class="cell shot-cell viz reveal" style="--reveal-index: 1" aria-labelledby="viz-title">
+				<div class="cell-head">
+					<h3 id="viz-title">vizEulize</h3>
+					<StatusChip status={status('vizEulize')} />
+				</div>
+				<p>
+					A searchable call-graph explorer in your browser, served from <code>127.0.0.1</code>. Focus a symbol, pick
+					a direction and depth, filter by tags and categories.
+				</p>
+				<code class="run">$ eulix vizEulize</code>
+				<div class="shot">
+					<Image
+						src={vizShot}
+						alt="vizEulize showing two call graphs: a small neighbourhood around one function on the left, and a dense project-wide graph with a highlighted cluster on the right."
+						widths={[480, 852]}
+						sizes="(min-width: 1060px) 580px, calc(100vw - 32px)"
+					/>
+				</div>
+			</article>
+
+			<article class="cell mcp reveal" aria-labelledby="mcp-title">
+				<div class="cell-head">
+					<h3 id="mcp-title">eulix mcp</h3>
+					<StatusChip status={MCP_STATUS} version={versionOf('eulix-cli')} />
+				</div>
+				<p>
+					An MCP server over stdio. Claude Code, Windsurf, Cline, Continue and LM Studio can query any analyzed
+					repository and get ranked source context back.
+				</p>
+				<div class="snippet">
+					<Code code={mcpConfig} lang="json" theme={eulixShikiTheme} />
+				</div>
+				<ul class="tags" aria-label="Tools exposed">
+					{mcpTools.map((tool) => <li class="mono">{tool}</li>)}
+				</ul>
+			</article>
+
+			<article class="cell lib reveal" style="--reveal-index: 1" aria-labelledby="lib-title">
+				<div class="cell-head">
+					<h3 id="lib-title">libeulix</h3>
+					<StatusChip status={status('libeulix')} version={versionOf('libeulix')} />
+				</div>
+				<p>The parsing, PRISM call-graph, indexing and metrics engine as a standalone Rust crate.</p>
+				<div class="cmd">
+					<code><span class="prompt">$ </span>cargo add libeulix</code>
+					<CopyButton text="cargo add libeulix" />
+				</div>
+				<a class="more" href={SITE.crateUrl}>crates.io/crates/libeulix</a>
+			</article>
+
+			<article class="cell lsp reveal" style="--reveal-index: 2" aria-labelledby="lsp-title">
+				<div class="cell-head">
+					<h3 id="lsp-title">eulix-lsp</h3>
+					<StatusChip status={status('eulix-lsp')} version={versionOf('eulix-lsp')} />
+				</div>
+				<p>A multi-language language server built on libeulix.</p>
+				<ul class="tags" aria-label="Features">
+					{lspFeatures.map((f) => <li>{f}</li>)}
+				</ul>
+				<a class="more" href={repoPath('eulix-lsp')}>eulix-lsp on GitHub</a>
+			</article>
+		</div>
+
+		<div class="components reveal">
+			<h3 class="components-title">Every component</h3>
+			<ul class="component-list">
+				{
+					components.map((c) => (
+						<li>
+							<div class="c-name">
+								<span class="mono">{c.name}</span>
+								<StatusChip status={c.status} version={c.versionText ? `v${c.versionText}` : undefined} size="sm" />
+							</div>
+							<span class="c-lang">
+								<BrandIcon icon={languageIcon[c.language]} size={14} />
+								{c.language}
+							</span>
+							<span class="c-role">{c.role}</span>
+							<a class="c-link" href={repoPath(c.name)} aria-label={`${c.name} source on GitHub`}>
+								source
+								<ArrowUpRight width={14} height={14} aria-hidden="true" />
+							</a>
+						</li>
+					))
+				}
+			</ul>
+		</div>
+	</div>
+</section>
+
+<style>
+	.bento {
+		display: grid;
+		grid-template-columns: repeat(6, minmax(0, 1fr));
+		gap: 16px;
+		margin-top: 48px;
+	}
+
+	.cell {
+		display: flex;
+		flex-direction: column;
+		gap: 14px;
+		min-width: 0;
+		padding: clamp(20px, 2.6vw, 28px);
+		border: 1px solid var(--line);
+		border-radius: var(--radius-panel);
+		background: var(--bg-raised);
+	}
+
+	.shot-cell {
+		grid-column: span 3;
+		background:
+			radial-gradient(ellipse 70% 45% at 50% 100%, rgb(94 234 212 / 0.07), transparent 70%),
+			var(--bg-raised);
+	}
+
+	.viz {
+		background:
+			radial-gradient(ellipse 70% 45% at 50% 100%, rgb(52 211 153 / 0.08), transparent 70%),
+			var(--bg-raised);
+	}
+
+	.mcp {
+		grid-column: span 2;
+		background:
+			radial-gradient(ellipse 90% 40% at 50% 0%, rgb(167 139 250 / 0.09), transparent 70%),
+			var(--bg-raised);
+	}
+
+	.lib,
+	.lsp {
+		grid-column: span 2;
+	}
+
+	.cell-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		flex-wrap: wrap;
+		gap: 8px 12px;
+	}
+
+	h3 {
+		font-family: var(--font-mono);
+		font-size: 1.05rem;
+		font-weight: 600;
+		letter-spacing: -0.01em;
+	}
+
+	.cell > p {
+		color: var(--text-2);
+		font-size: 0.93rem;
+		line-height: 1.6;
+	}
+
+	.cell > p code {
+		color: var(--gold);
+	}
+
+	.run {
+		align-self: flex-start;
+		padding: 4px 10px;
+		border: 1px solid var(--line);
+		border-radius: 6px;
+		background: var(--bg-inset);
+		color: var(--teal);
+		font-size: 0.82rem;
+	}
+
+	.shot {
+		margin-top: auto;
+		padding: 5px;
+		border: 1px solid var(--line-strong);
+		border-radius: 10px;
+		background: var(--bg-inset);
+	}
+
+	.shot :global(img) {
+		width: 100%;
+		border-radius: 6px;
+	}
+
+	.snippet :global(pre) {
+		margin: 0;
+		padding: 14px 16px;
+		border: 1px solid var(--line);
+		border-radius: var(--radius-control);
+		font-size: 0.8rem;
+		line-height: 1.6;
+		overflow-x: auto;
+	}
+
+	.tags,
+	.commands {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.tags li,
+	.commands li {
+		padding: 3px 9px;
+		border: 1px solid var(--line);
+		border-radius: 999px;
+		color: var(--text-2);
+		font-size: 0.75rem;
+		white-space: nowrap;
+	}
+
+	.commands li {
+		border-radius: 6px;
+		color: var(--text);
+	}
+
+	.mcp .tags {
+		margin-top: auto;
+	}
+
+	.mcp .tags li {
+		color: var(--lilac);
+		border-color: var(--violet-line);
+	}
+
+	.lib .cmd {
+		margin-top: auto;
+	}
+
+	.lsp .tags {
+		margin-bottom: auto;
+	}
+
+	.more {
+		color: var(--muted);
+		font-size: 0.85rem;
+		text-decoration: underline;
+		text-decoration-color: var(--line-strong);
+		text-underline-offset: 3px;
+	}
+
+	/* ── Every component ── */
+
+	.components {
+		margin-top: 40px;
+	}
+
+	.components-title {
+		font-family: var(--font-sans);
+		font-size: 1.05rem;
+		font-weight: 600;
+		letter-spacing: -0.015em;
+	}
+
+	.component-list {
+		margin: 16px 0 0;
+		padding: 0;
+		list-style: none;
+		border: 1px solid var(--line);
+		border-radius: var(--radius-panel);
+		overflow: hidden;
+	}
+
+	.component-list li {
+		display: grid;
+		grid-template-columns: minmax(230px, 1.3fr) 110px minmax(0, 3fr) auto;
+		align-items: center;
+		gap: 8px 24px;
+		padding: 14px 20px;
+	}
+
+	.component-list li + li {
+		border-top: 1px solid var(--line);
+	}
+
+	.c-name {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 8px 10px;
+		color: var(--text);
+		font-size: 0.92rem;
+	}
+
+	.c-lang {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		color: var(--muted);
+		font-size: 0.85rem;
+	}
+
+	.c-role {
+		color: var(--text-2);
+		font-size: 0.88rem;
+	}
+
+	.c-link {
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		min-height: 32px;
+		color: var(--muted);
+		font-family: var(--font-mono);
+		font-size: 0.78rem;
+		text-decoration: none;
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		.more:hover,
+		.c-link:hover {
+			color: var(--teal);
+			text-decoration-color: var(--teal-line);
+		}
+	}
+
+	@media (max-width: 1060px) {
+		.shot-cell,
+		.mcp {
+			grid-column: span 6;
+		}
+		.lib,
+		.lsp {
+			grid-column: span 3;
+		}
+	}
+
+	@media (max-width: 860px) {
+		.component-list li {
+			grid-template-columns: minmax(0, 1fr) auto;
+			grid-template-areas:
+				'name link'
+				'lang lang'
+				'role role';
+			gap: 6px 16px;
+		}
+		.c-name {
+			grid-area: name;
+		}
+		.c-lang {
+			grid-area: lang;
+		}
+		.c-role {
+			grid-area: role;
+		}
+		.c-link {
+			grid-area: link;
+		}
+	}
+
+	@media (max-width: 640px) {
+		.bento {
+			grid-template-columns: 1fr;
+		}
+		.shot-cell,
+		.mcp,
+		.lib,
+		.lsp {
+			grid-column: auto;
+		}
+	}
+</style>

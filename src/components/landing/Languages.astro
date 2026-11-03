@@ -1,0 +1,139 @@
+---
+import {
+	siC,
+	siCplusplus,
+	siGo,
+	siJavascript,
+	siOpenjdk,
+	siPhp,
+	siPython,
+	siRust,
+	siTypescript,
+	type SimpleIcon,
+} from 'simple-icons';
+import BrandIcon from '../BrandIcon.astro';
+
+// From the README's "Supported languages" table.
+const languages: { name: string; icon: SimpleIcon; note: string; caveat?: boolean }[] = [
+	{ name: 'C', icon: siC, note: 'Limited by macro expansion', caveat: true },
+	{ name: 'C++', icon: siCplusplus, note: 'Limited by macro expansion', caveat: true },
+	{ name: 'Go', icon: siGo, note: 'Kubernetes, gin-gonic' },
+	{ name: 'Python', icon: siPython, note: 'Django, OpenStack' },
+	{ name: 'Rust', icon: siRust, note: 'ripgrep, Zed' },
+	{ name: 'TypeScript', icon: siTypescript, note: 'Deno. No .tsx yet', caveat: true },
+	{ name: 'JavaScript', icon: siJavascript, note: 'Express.js, Three.js. No .jsx yet', caveat: true },
+	{ name: 'Java', icon: siOpenjdk, note: 'Tomcat, OpenJDK' },
+	{ name: 'PHP', icon: siPhp, note: 'WordPress, Laravel, Symfony' },
+];
+---
+
+<section class="section" id="languages" aria-labelledby="lang-title">
+	<div class="container">
+		<div class="head">
+			<h2 id="lang-title" class="section-title reveal">Nine languages, one index.</h2>
+			<p class="section-lead reveal">
+				Each one is validated on real projects. Mixed-language monorepos are handled with subsystem detection and path
+				gating.
+			</p>
+		</div>
+		<ul class="grid">
+			{
+				languages.map((lang, i) => (
+					<li class="reveal" style={`--reveal-index: ${i % 3}`}>
+						<BrandIcon icon={lang.icon} size={22} />
+						<div>
+							<p class="name">{lang.name}</p>
+							<p class:list={['note', { caveat: lang.caveat }]}>
+								{lang.caveat ? lang.note : `Validated on ${lang.note}`}
+							</p>
+						</div>
+					</li>
+				))
+			}
+		</ul>
+		<p class="foot">
+			C and C++ parsing may fall short of 100% because macros are not expanded. JSX and TSX files are not parsed yet.
+		</p>
+	</div>
+</section>
+
+<style>
+	.grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 1px;
+		margin: 48px 0 0;
+		padding: 0;
+		list-style: none;
+		border: 1px solid var(--line);
+		border-radius: var(--radius-panel);
+		background: var(--line);
+		overflow: hidden;
+	}
+
+	li {
+		display: flex;
+		align-items: flex-start;
+		gap: 16px;
+		padding: 22px 24px;
+		background: var(--bg);
+		transition: background-color 200ms var(--ease-out);
+	}
+
+	li :global(svg) {
+		flex: none;
+		margin-top: 2px;
+		color: var(--muted);
+		transition: color 200ms var(--ease-out);
+	}
+
+	.name {
+		color: var(--text);
+		font-weight: 600;
+	}
+
+	.note {
+		margin-top: 2px;
+		color: var(--muted);
+		font-size: 0.86rem;
+	}
+
+	.caveat {
+		color: var(--faint);
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		li:hover {
+			background: var(--bg-raised);
+		}
+		li:hover :global(svg) {
+			color: var(--text);
+		}
+	}
+
+	.foot {
+		margin-top: 14px;
+		color: var(--faint);
+		font-size: 0.84rem;
+	}
+
+	@media (max-width: 860px) {
+		.grid {
+			grid-template-columns: 1fr 1fr;
+		}
+	}
+
+	@media (max-width: 520px) {
+		li {
+			flex-direction: column;
+			gap: 10px;
+			padding: 18px 16px;
+		}
+	}
+
+	@media (max-width: 340px) {
+		.grid {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

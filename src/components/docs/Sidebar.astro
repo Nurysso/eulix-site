@@ -1,0 +1,113 @@
+---
+import { withBase } from '../../lib/doc-paths.ts';
+import type { DocSection } from '../../lib/docs.ts';
+import StatusChip from '../StatusChip.astro';
+
+interface Props {
+  sections: DocSection[];
+  currentId?: string;
+}
+
+const { sections, currentId } = Astro.props;
+const indexHref = withBase(import.meta.env.BASE_URL, 'docs/');
+---
+
+<nav class="sidebar-nav" id="docs-nav" aria-label="Documentation">
+  <a
+    class="index-link"
+    href={indexHref}
+    aria-current={currentId === undefined ? 'page' : undefined}
+  >
+    All documentation
+  </a>
+  {
+    sections.map((section) => (
+      <div class="group">
+        <h2 class="group-title">
+          {section.label}
+          {section.component && (
+            <StatusChip
+              status={section.component.status}
+              version={
+                section.component.versionText ? `v${section.component.versionText}` : undefined
+              }
+              size="sm"
+            />
+          )}
+        </h2>
+        <ul>
+          {section.docs.map((doc) => (
+            <li>
+              <a href={doc.href} aria-current={doc.id === currentId ? 'page' : undefined}>
+                {doc.navLabel}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))
+  }
+</nav>
+
+<style>
+  .sidebar-nav {
+    display: grid;
+    gap: 28px;
+    padding-block: 32px 48px;
+  }
+
+  .group-title {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px 8px;
+    margin-bottom: 8px;
+    padding-left: 12px;
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: var(--muted);
+  }
+
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 1px;
+  }
+
+  a {
+    display: block;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border-left: 2px solid transparent;
+    color: var(--text-2);
+    font-size: 0.9rem;
+    line-height: 1.4;
+    text-decoration: none;
+    transition:
+      color 140ms var(--ease-out),
+      background-color 140ms var(--ease-out);
+  }
+
+  .index-link {
+    font-weight: 550;
+    color: var(--text);
+  }
+
+  a[aria-current='page'] {
+    color: var(--teal);
+    background: var(--teal-wash);
+    border-left-color: var(--teal);
+    border-radius: 0 6px 6px 0;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    a:not([aria-current='page']):hover {
+      color: var(--text);
+      background: rgb(255 255 255 / 0.03);
+    }
+  }
+</style>

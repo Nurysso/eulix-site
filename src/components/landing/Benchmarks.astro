@@ -1,0 +1,310 @@
+---
+import ArrowRight from '@phosphor-icons/core/assets/regular/arrow-right.svg';
+import { withBase } from '../../lib/doc-paths.ts';
+
+// Linux kernel run from the README (12 threads, PRISM v2).
+const total = 57.2;
+const phases = [
+	{ name: 'Parse', seconds: 52.23, tone: 'parse' },
+	{ name: 'Call graphs (PRISM v2)', seconds: 1.34, tone: 'graph' },
+	{ name: 'Summary and metrics', seconds: 0.34, tone: 'summary' },
+];
+const accounted = phases.reduce((sum, p) => sum + p.seconds, 0);
+const segments = [...phases, { name: 'Other', seconds: Number((total - accounted).toFixed(2)), tone: 'other' }];
+
+const stats = [
+	{ value: '~650K', unit: 'lines / s', text: 'End-to-end parser throughput on 12 threads.' },
+	{ value: '1.51M', unit: 'edges', text: 'Call graph of 773,072 nodes, extracted with zero parse failures.' },
+	{
+		value: '837,531',
+		unit: 'chunks',
+		text: 'Embedded locally in 26 min 27 s on one AMD Radeon RX 6700 XT, at 527.6 chunks / s.',
+	},
+	{ value: '~3.3', unit: 'GiB peak', text: 'Spill-to-disk serialization cut peak memory from about 8 GB.' },
+];
+
+const base = import.meta.env.BASE_URL;
+---
+
+<section class="section" id="benchmarks" aria-labelledby="bench-title">
+	<div class="container">
+		<h2 id="bench-title" class="section-title reveal">The Linux kernel, parsed in 57 seconds.</h2>
+		<p class="section-lead reveal">
+			64,460 source files and 37.3 million lines on 12 threads with PRISM v2. Nothing failed and nothing was skipped.
+		</p>
+
+		<div class="headline reveal">
+			<div class="big">
+				<p class="figure"><span>57.2</span><small>s</small></p>
+				<p class="caption">parser total, 37,322,700 lines</p>
+			</div>
+
+			<div class="phases">
+				<p class="phases-title mono">Where the time goes</p>
+				<div class="bar" role="img" aria-label={segments.map((s) => `${s.name} ${s.seconds} seconds`).join(', ')}>
+					{
+						segments.map((s) => (
+							<span class={`seg seg-${s.tone}`} style={`flex-grow: ${s.seconds}`} title={`${s.name}: ${s.seconds} s`} />
+						))
+					}
+				</div>
+				<ul class="legend">
+					{
+						segments.map((s) => (
+							<li>
+								<span class={`swatch seg-${s.tone}`} aria-hidden="true" />
+								<span class="legend-name">{s.name}</span>
+								<span class="legend-value mono">{s.seconds.toFixed(2)} s</span>
+							</li>
+						))
+					}
+				</ul>
+			</div>
+		</div>
+
+		<ul class="stats">
+			{
+				stats.map((stat, i) => (
+					<li class="reveal" style={`--reveal-index: ${i}`}>
+						<p class="stat-value">
+							{stat.value}
+							<span class="stat-unit">{stat.unit}</span>
+						</p>
+						<p class="stat-text">{stat.text}</p>
+					</li>
+				))
+			}
+		</ul>
+
+		<div class="foot reveal">
+			<p>
+				Local engineering runs. Results vary with hardware, repository state, parser configuration, embedding model and
+				query shape. Embedding is the slow stage at scale; with the EHNAS engine, <code>eulix analyze</code> skips it.
+			</p>
+			<a href={withBase(base, 'docs/eulix-parser/benchmark/')}>
+				Parser benchmarks <ArrowRight width={14} height={14} aria-hidden="true" />
+			</a>
+		</div>
+	</div>
+</section>
+
+<style>
+	.headline {
+		display: grid;
+		grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+		margin-top: 48px;
+		border: 1px solid var(--line);
+		border-radius: var(--radius-panel);
+		overflow: hidden;
+	}
+
+	.big {
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-end;
+		padding: clamp(24px, 4vw, 40px);
+		background:
+			radial-gradient(ellipse 80% 90% at 0% 100%, rgb(94 234 212 / 0.1), transparent 70%),
+			var(--bg-raised);
+		border-right: 1px solid var(--line);
+	}
+
+	.figure {
+		display: flex;
+		align-items: baseline;
+		gap: 6px;
+		font-size: clamp(4.5rem, 3rem + 6vw, 8rem);
+		font-weight: 600;
+		letter-spacing: -0.06em;
+		line-height: 0.9;
+		font-variant-numeric: tabular-nums;
+	}
+
+	.figure small {
+		font-size: 0.35em;
+		letter-spacing: -0.02em;
+		color: var(--teal);
+	}
+
+	.caption {
+		margin-top: 14px;
+		font-family: var(--font-mono);
+		font-size: 0.8rem;
+		color: var(--muted);
+	}
+
+	.phases {
+		padding: clamp(24px, 4vw, 40px);
+		background: var(--bg);
+	}
+
+	.phases-title {
+		font-size: 0.78rem;
+		color: var(--muted);
+	}
+
+	.bar {
+		display: flex;
+		gap: 2px;
+		height: 36px;
+		margin-top: 18px;
+		border-radius: 6px;
+		overflow: hidden;
+	}
+
+	.seg {
+		flex-basis: 0;
+		min-width: 3px;
+	}
+
+	.seg-parse {
+		background: #3a4050;
+	}
+	.seg-graph {
+		background: var(--teal);
+	}
+	.seg-summary {
+		background: var(--violet);
+	}
+	.seg-other {
+		background: repeating-linear-gradient(135deg, var(--line-strong) 0 4px, transparent 4px 8px);
+	}
+
+	.legend {
+		display: grid;
+		gap: 10px;
+		margin: 24px 0 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.legend li {
+		display: grid;
+		grid-template-columns: 12px 1fr auto;
+		align-items: center;
+		gap: 12px;
+		padding-bottom: 10px;
+		border-bottom: 1px solid var(--line);
+		font-size: 0.9rem;
+	}
+
+	.legend li:last-child {
+		border-bottom: 0;
+		padding-bottom: 0;
+	}
+
+	.swatch {
+		width: 12px;
+		height: 12px;
+		border-radius: 3px;
+	}
+
+	.legend-name {
+		color: var(--text-2);
+	}
+
+	.legend-value {
+		color: var(--text);
+		font-size: 0.85rem;
+		font-variant-numeric: tabular-nums;
+	}
+
+	.stats {
+		display: grid;
+		grid-template-columns: repeat(4, 1fr);
+		gap: 1px;
+		margin: 20px 0 0;
+		padding: 0;
+		list-style: none;
+		border: 1px solid var(--line);
+		border-radius: var(--radius-panel);
+		background: var(--line);
+		overflow: hidden;
+	}
+
+	.stats li {
+		padding: 24px;
+		background: var(--bg-raised);
+	}
+
+	.stat-value {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 4px 8px;
+		font-size: clamp(1.8rem, 1.4rem + 1.2vw, 2.4rem);
+		font-weight: 600;
+		letter-spacing: -0.04em;
+		line-height: 1.05;
+		font-variant-numeric: tabular-nums;
+	}
+
+	.stat-unit {
+		font-family: var(--font-mono);
+		font-size: 0.8rem;
+		font-weight: 400;
+		letter-spacing: 0;
+		color: var(--teal);
+	}
+
+	.stat-text {
+		margin-top: 12px;
+		color: var(--muted);
+		font-size: 0.88rem;
+		line-height: 1.55;
+	}
+
+	.foot {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 12px 32px;
+		margin-top: 20px;
+		color: var(--faint);
+		font-size: 0.84rem;
+	}
+
+	.foot p {
+		max-width: 78ch;
+	}
+
+	.foot code {
+		color: var(--muted);
+		font-size: 0.95em;
+	}
+
+	.foot a {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		color: var(--teal);
+		text-decoration: none;
+		white-space: nowrap;
+		font-size: 0.9rem;
+	}
+
+	.foot a:hover {
+		text-decoration: underline;
+		text-underline-offset: 3px;
+	}
+
+	@media (max-width: 960px) {
+		.headline {
+			grid-template-columns: 1fr;
+		}
+		.big {
+			border-right: 0;
+			border-bottom: 1px solid var(--line);
+		}
+		.stats {
+			grid-template-columns: 1fr 1fr;
+		}
+	}
+
+	@media (max-width: 520px) {
+		.stats {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

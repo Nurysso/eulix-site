@@ -1,0 +1,26 @@
+---
+// Renders a Simple Icons glyph in currentColor, so brand marks stay monochrome.
+import type { SimpleIcon } from 'simple-icons';
+
+interface Props {
+	icon: SimpleIcon;
+	size?: number;
+	label?: string;
+	class?: string;
+}
+
+const { icon, size = 20, label, class: className } = Astro.props;
+---
+
+<svg
+	class={className}
+	width={size}
+	height={size}
+	viewBox="0 0 24 24"
+	fill="currentColor"
+	role={label ? 'img' : undefined}
+	aria-label={label}
+	aria-hidden={label ? undefined : 'true'}
+>
+	<path d={icon.path}></path>
+</svg>

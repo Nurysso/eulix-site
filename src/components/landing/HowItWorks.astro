@@ -1,0 +1,360 @@
+---
+import ArrowRight from '@phosphor-icons/core/assets/regular/arrow-right.svg';
+import { withBase } from '../../lib/doc-paths.ts';
+
+const base = import.meta.env.BASE_URL;
+
+// `.eulix/` contents, from the README's "Generated data" section.
+const files = [
+	{ name: 'kb.json', what: 'symbols, functions, classes, methods' },
+	{ name: 'kb_index.json', what: 'lookup indexes' },
+	{ name: 'kb_call_graph.json', what: 'call graph and reverse call graph' },
+	{ name: 'kb_summary.json', what: 'project summary and metrics' },
+	{ name: 'embeddings.bin', what: 'SQ8-quantized embeddings · etiya only' },
+	{ name: 'vectors.bin', what: 'vector store · etiya only' },
+];
+
+const extracts = ['symbols and AST', 'relationships', 'indexes and metrics'];
+const branches = [
+	{ name: 'exact', detail: 'symbols' },
+	{ name: 'lexical', detail: 'BM25 / keywords' },
+	{ name: 'semantic', detail: 'IVF vectors' },
+];
+const ranking = [
+	'merge and deduplicate',
+	'subsystem signals',
+	'scope and test-file demotion',
+	'MMR with exact-first ranking',
+];
+---
+
+<section class="section" id="how-it-works" aria-labelledby="how-title">
+	<div class="container">
+		<h2 id="how-title" class="section-title reveal">Index once. Ask as often as you like.</h2>
+		<p class="section-lead reveal">
+			<code>eulix analyze</code> parses the repository into a knowledge base on disk. Every question after that is answered
+			from it, on your machine.
+		</p>
+
+		<div class="stages">
+			<article class="stage reveal" style="--reveal-index: 1" aria-labelledby="stage-index">
+				<header>
+					<span class="step mono">01</span>
+					<h3 id="stage-index">Index</h3>
+					<code class="cmd-inline">eulix analyze</code>
+				</header>
+
+				<div class="flow">
+					<div class="box">
+						<span class="box-title">libeulix</span>
+						<span class="box-sub">Rust + Tree-sitter</span>
+					</div>
+					<div class="down" aria-hidden="true"></div>
+					<ul class="split">
+						{extracts.map((item) => <li>{item}</li>)}
+					</ul>
+					<div class="down" aria-hidden="true"></div>
+					<div class="tree" role="group" aria-label="Files written to .eulix/">
+						<p class="tree-root mono">.eulix/</p>
+						<ul>
+							{
+								files.map((file) => (
+									<li>
+										<span class="mono file">{file.name}</span>
+										<span class="what">{file.what}</span>
+									</li>
+								))
+							}
+						</ul>
+					</div>
+				</div>
+
+				<p class="aside">
+					Call relationships come from <strong>PRISM</strong>, an approximate resolver built for speed at repository
+					scale rather than formal whole-program soundness.
+					<a href={withBase(base, 'docs/eulix-parser/call_graphs/')}>
+						How PRISM works <ArrowRight width={14} height={14} aria-hidden="true" />
+					</a>
+				</p>
+			</article>
+
+			<article class="stage reveal" style="--reveal-index: 2" aria-labelledby="stage-retrieve">
+				<header>
+					<span class="step mono">02</span>
+					<h3 id="stage-retrieve">Retrieve</h3>
+					<code class="cmd-inline">eulix query</code>
+				</header>
+
+				<div class="flow">
+					<div class="box">
+						<span class="box-title">query</span>
+						<span class="box-sub">explicit anchors + path gates</span>
+					</div>
+					<div class="down" aria-hidden="true"></div>
+					<ul class="split split-accent">
+						{
+							branches.map((b) => (
+								<li>
+									<span class="mono">{b.name}</span>
+									<span class="box-sub">{b.detail}</span>
+								</li>
+							))
+						}
+					</ul>
+					<div class="down" aria-hidden="true"></div>
+					<ol class="ranking">
+						{ranking.map((step) => <li>{step}</li>)}
+					</ol>
+					<div class="down" aria-hidden="true"></div>
+					<div class="box box-out">
+						<span class="box-title">selected context</span>
+						<span class="box-sub">to you, your agent, or an optional LLM</span>
+					</div>
+				</div>
+
+				<p class="aside">
+					Retrieval stays a ranking system, not a proof system. Naming a symbol or path narrows the search.
+					<a href={withBase(base, 'docs/architecture/retrieval/')}>
+						Retrieval pipeline <ArrowRight width={14} height={14} aria-hidden="true" />
+					</a>
+				</p>
+			</article>
+		</div>
+	</div>
+</section>
+
+<style>
+	.section-lead code {
+		color: var(--gold);
+		font-size: 0.9em;
+	}
+
+	.stages {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 20px;
+		margin-top: 48px;
+	}
+
+	.stage {
+		display: flex;
+		flex-direction: column;
+		padding: clamp(20px, 3vw, 32px);
+		border: 1px solid var(--line);
+		border-radius: var(--radius-panel);
+		background: var(--bg-raised);
+	}
+
+	header {
+		display: flex;
+		align-items: baseline;
+		gap: 12px;
+		flex-wrap: wrap;
+	}
+
+	.step {
+		font-size: 0.78rem;
+		color: var(--teal);
+	}
+
+	h3 {
+		font-size: 1.35rem;
+		letter-spacing: -0.02em;
+	}
+
+	.cmd-inline {
+		margin-left: auto;
+		padding: 2px 8px;
+		border: 1px solid var(--line);
+		border-radius: 6px;
+		color: var(--muted);
+		font-size: 0.78rem;
+	}
+
+	.flow {
+		display: flex;
+		flex-direction: column;
+		margin-top: 28px;
+	}
+
+	.box {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 4px 12px;
+		padding: 12px 16px;
+		border: 1px solid var(--line-strong);
+		border-radius: var(--radius-control);
+		background: var(--bg-panel);
+	}
+
+	.box-title {
+		font-family: var(--font-mono);
+		font-size: 0.9rem;
+		color: var(--text);
+	}
+
+	.box-sub {
+		color: var(--muted);
+		font-size: 0.82rem;
+	}
+
+	.box-out {
+		border-color: var(--teal-line);
+		background: var(--teal-wash);
+	}
+
+	.box-out .box-title {
+		color: var(--teal);
+	}
+
+	.down {
+		position: relative;
+		align-self: center;
+		width: 1px;
+		height: 22px;
+		background: var(--line-strong);
+	}
+
+	.down::after {
+		content: '';
+		position: absolute;
+		left: -3px;
+		bottom: -1px;
+		border: 3.5px solid transparent;
+		border-top-color: var(--line-strong);
+		border-bottom: 0;
+	}
+
+	.split {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 8px;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.split li {
+		display: grid;
+		gap: 2px;
+		padding: 10px 12px;
+		border: 1px solid var(--line);
+		border-radius: var(--radius-control);
+		color: var(--text-2);
+		font-size: 0.85rem;
+		text-align: center;
+	}
+
+	.split-accent li .mono {
+		color: var(--lilac);
+		font-size: 0.86rem;
+	}
+
+	.tree {
+		padding: 14px 16px;
+		border: 1px solid var(--line);
+		border-radius: var(--radius-control);
+		background: var(--bg-inset);
+	}
+
+	.tree-root {
+		color: var(--gold);
+		font-size: 0.85rem;
+	}
+
+	.tree ul {
+		margin: 8px 0 0;
+		padding: 0 0 0 14px;
+		list-style: none;
+		border-left: 1px solid var(--line-strong);
+		display: grid;
+		gap: 6px;
+	}
+
+	.tree li {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 2px 12px;
+		align-items: baseline;
+	}
+
+	.file {
+		color: var(--text);
+		font-size: 0.82rem;
+	}
+
+	.what {
+		color: var(--muted);
+		font-size: 0.8rem;
+	}
+
+	.ranking {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		counter-reset: rank;
+		border: 1px solid var(--line);
+		border-radius: var(--radius-control);
+	}
+
+	.ranking li {
+		counter-increment: rank;
+		display: flex;
+		gap: 12px;
+		padding: 9px 14px;
+		color: var(--text-2);
+		font-size: 0.88rem;
+	}
+
+	.ranking li + li {
+		border-top: 1px solid var(--line);
+	}
+
+	.ranking li::before {
+		content: counter(rank, decimal-leading-zero);
+		font-family: var(--font-mono);
+		font-size: 0.74rem;
+		color: var(--faint);
+		padding-top: 2px;
+	}
+
+	.aside {
+		margin-top: auto;
+		padding-top: 24px;
+		color: var(--muted);
+		font-size: 0.9rem;
+	}
+
+	.aside strong {
+		color: var(--text-2);
+	}
+
+	.aside a {
+		display: flex;
+		width: fit-content;
+		align-items: center;
+		gap: 6px;
+		margin-top: 8px;
+		color: var(--teal);
+		text-decoration: none;
+		white-space: nowrap;
+	}
+
+	.aside a:hover {
+		text-decoration: underline;
+		text-underline-offset: 3px;
+	}
+
+	@media (max-width: 960px) {
+		.stages {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	@media (max-width: 420px) {
+		.split {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

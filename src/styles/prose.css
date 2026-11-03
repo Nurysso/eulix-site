@@ -1,0 +1,420 @@
+/* Typography for Markdown rendered from the repo's docs/ folder. */
+
+.prose {
+	max-width: 76ch;
+	color: var(--text-2);
+	font-size: 1rem;
+	line-height: 1.75;
+	overflow-wrap: break-word;
+}
+
+.prose > * + * {
+	margin-top: 1.15em;
+}
+
+.prose :is(h1, h2, h3, h4, h5, h6) {
+	position: relative;
+	color: var(--text);
+	scroll-margin-top: calc(var(--header-h) + 24px);
+}
+
+.prose h1 {
+	font-size: clamp(2rem, 1.5rem + 1.8vw, 2.75rem);
+	letter-spacing: -0.035em;
+	line-height: 1.1;
+	margin-bottom: 0.4em;
+}
+
+.prose h2 {
+	margin-top: 2.4em;
+	padding-top: 1.2em;
+	border-top: 1px solid var(--line);
+	font-size: 1.55rem;
+	letter-spacing: -0.025em;
+}
+
+.prose h1 + h2,
+.prose hr + h2 {
+	border-top: 0;
+	padding-top: 0;
+}
+
+.prose h3 {
+	margin-top: 2em;
+	font-size: 1.2rem;
+	letter-spacing: -0.015em;
+}
+
+.prose h4,
+.prose h5,
+.prose h6 {
+	margin-top: 1.75em;
+	font-size: 1rem;
+	letter-spacing: -0.005em;
+}
+
+.prose :is(h2, h3, h4) + * {
+	margin-top: 0.75em;
+}
+
+.heading-anchor {
+	margin-left: 0.4em;
+	color: var(--faint);
+	font-family: var(--font-mono);
+	font-weight: 400;
+	text-decoration: none;
+	opacity: 0;
+	transition: opacity 140ms var(--ease-out), color 140ms var(--ease-out);
+}
+
+.prose :is(h2, h3, h4):hover .heading-anchor,
+.heading-anchor:focus-visible {
+	opacity: 1;
+}
+
+.heading-anchor:hover {
+	color: var(--teal);
+}
+
+@media (hover: none) {
+	.heading-anchor {
+		display: none;
+	}
+}
+
+.prose strong {
+	color: var(--text);
+	font-weight: 600;
+}
+
+.prose a {
+	color: var(--teal);
+	text-decoration: underline;
+	text-decoration-color: var(--teal-line);
+	text-underline-offset: 3px;
+	transition: text-decoration-color 140ms var(--ease-out);
+}
+
+.prose a:hover {
+	text-decoration-color: var(--teal);
+}
+
+.prose :is(ul, ol) {
+	padding-left: 1.4em;
+}
+
+.prose li + li,
+.prose li > :is(ul, ol) {
+	margin-top: 0.4em;
+}
+
+.prose ul > li::marker {
+	color: var(--lilac);
+}
+
+.prose ol > li::marker {
+	color: var(--muted);
+	font-family: var(--font-mono);
+	font-size: 0.9em;
+}
+
+.prose li > p {
+	margin: 0;
+}
+
+.prose input[type='checkbox'] {
+	accent-color: var(--teal);
+	margin-right: 0.4em;
+}
+
+.prose hr {
+	height: 1px;
+	margin-block: 2.5em;
+	border: 0;
+	background: var(--line);
+}
+
+.prose img {
+	border-radius: var(--radius-panel);
+	border: 1px solid var(--line);
+}
+
+/* Inline code */
+.prose :not(pre) > code {
+	padding: 0.12em 0.4em;
+	border: 1px solid var(--line);
+	border-radius: 5px;
+	background: var(--bg-raised);
+	color: var(--gold);
+	font-size: 0.86em;
+	white-space: break-spaces;
+}
+
+.prose a code {
+	color: inherit;
+}
+
+/* Code blocks (Shiki) */
+.prose pre {
+	margin: 0;
+	padding: 18px 20px;
+	overflow-x: auto;
+	border: 1px solid var(--line);
+	border-radius: var(--radius-panel);
+	background: var(--bg-inset) !important;
+	font-size: 0.84rem;
+	line-height: 1.65;
+	tab-size: 4;
+	scrollbar-width: thin;
+	scrollbar-color: var(--line-strong) transparent;
+}
+
+.prose pre code {
+	font-size: inherit;
+}
+
+.code-block {
+	position: relative;
+}
+
+.code-block[data-lang]::before {
+	content: attr(data-lang);
+	position: absolute;
+	top: 10px;
+	right: 56px;
+	font-family: var(--font-mono);
+	font-size: 0.7rem;
+	color: var(--faint);
+	pointer-events: none;
+}
+
+.code-copy {
+	position: absolute;
+	top: 8px;
+	right: 8px;
+	width: 32px;
+	height: 32px;
+	opacity: 0;
+	transition: opacity 140ms var(--ease-out);
+}
+
+.code-block:hover .code-copy,
+.code-copy:focus-visible,
+.code-copy[data-copied='true'] {
+	opacity: 1;
+}
+
+@media (hover: none) {
+	.code-copy {
+		opacity: 1;
+	}
+	.code-block[data-lang]::before {
+		display: none;
+	}
+}
+
+/* Tables */
+.table-wrap {
+	overflow-x: auto;
+	border: 1px solid var(--line);
+	border-radius: var(--radius-panel);
+	scrollbar-width: thin;
+	scrollbar-color: var(--line-strong) transparent;
+}
+
+.prose table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 0.88rem;
+	line-height: 1.55;
+}
+
+.prose th,
+.prose td {
+	padding: 10px 14px;
+	border-bottom: 1px solid var(--line);
+	text-align: left;
+	vertical-align: top;
+}
+
+.prose th {
+	background: var(--bg-raised);
+	color: var(--text);
+	font-weight: 600;
+	white-space: nowrap;
+}
+
+.prose tr:last-child td {
+	border-bottom: 0;
+}
+
+.prose td code {
+	white-space: nowrap;
+}
+
+/* Blockquotes */
+.prose blockquote {
+	margin-inline: 0;
+	padding: 2px 0 2px 18px;
+	border-left: 2px solid var(--line-strong);
+	color: var(--muted);
+}
+
+.prose blockquote > * + * {
+	margin-top: 0.75em;
+}
+
+/* GitHub alerts → callouts */
+.callout {
+	--callout: var(--muted);
+	padding: 14px 18px;
+	border: 1px solid color-mix(in srgb, var(--callout) 30%, transparent);
+	border-left: 3px solid var(--callout);
+	border-radius: 0 var(--radius-control) var(--radius-control) 0;
+	background: color-mix(in srgb, var(--callout) 6%, transparent);
+	color: var(--text-2);
+}
+
+.callout > * + * {
+	margin-top: 0.6em;
+}
+
+.callout-title {
+	font-family: var(--font-mono);
+	font-size: 0.78rem;
+	font-weight: 600;
+	letter-spacing: 0.02em;
+	color: var(--callout);
+}
+
+.callout-note {
+	--callout: var(--teal);
+}
+.callout-tip {
+	--callout: var(--emerald);
+}
+.callout-important {
+	--callout: var(--violet);
+}
+.callout-warning {
+	--callout: var(--amber);
+}
+.callout-caution {
+	--callout: var(--coral);
+}
+
+/* Mermaid diagrams */
+.prose .diagram {
+	margin-inline: 0;
+	padding: 20px;
+	overflow-x: auto;
+	border: 1px solid var(--line);
+	border-radius: var(--radius-panel);
+	background: var(--bg-inset);
+}
+
+.prose pre.mermaid {
+	padding: 0;
+	border: 0;
+	background: transparent !important;
+	color: var(--faint);
+	font-size: 0.78rem;
+	white-space: pre;
+}
+
+.prose .diagram:not(.is-rendered) pre.mermaid {
+	max-height: 280px;
+	overflow: hidden;
+}
+
+.prose pre.mermaid svg {
+	margin-inline: auto;
+	height: auto;
+}
+
+.prose .diagram {
+	position: relative;
+}
+
+.diagram-expand {
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	min-height: 32px;
+	padding: 0 10px;
+	border: 1px solid var(--line-strong);
+	border-radius: 6px;
+	background: var(--bg-panel);
+	color: var(--muted);
+	font-family: var(--font-mono);
+	font-size: 0.74rem;
+	cursor: pointer;
+	transition:
+		color 140ms var(--ease-out),
+		border-color 140ms var(--ease-out);
+}
+
+.diagram-expand:hover {
+	color: var(--text);
+	border-color: var(--muted);
+}
+
+.diagram-dialog {
+	width: calc(100vw - 32px);
+	max-width: none;
+	height: calc(100dvh - 32px);
+	max-height: none;
+	padding: 0;
+	border: 1px solid var(--line-strong);
+	border-radius: var(--radius-panel);
+	background: var(--bg-inset);
+	color: var(--text);
+}
+
+.diagram-dialog::backdrop {
+	background: rgb(5 6 8 / 0.8);
+	backdrop-filter: blur(4px);
+}
+
+.diagram-dialog-body {
+	width: 100%;
+	height: 100%;
+	overflow: auto;
+	padding: 56px 24px 24px;
+}
+
+.diagram-dialog-body svg {
+	display: block;
+	margin-inline: auto;
+	height: auto;
+}
+
+.diagram-close {
+	position: absolute;
+	top: 12px;
+	right: 12px;
+	z-index: 1;
+	display: inline-grid;
+	place-items: center;
+	width: 40px;
+	height: 40px;
+	border: 1px solid var(--line-strong);
+	border-radius: var(--radius-control);
+	background: var(--bg-panel);
+	color: var(--text);
+	cursor: pointer;
+}
+
+/* Footnotes */
+.prose .footnotes {
+	margin-top: 3em;
+	font-size: 0.88rem;
+	color: var(--muted);
+}
+
+.prose sup a {
+	text-decoration: none;
+}

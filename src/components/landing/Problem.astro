@@ -1,0 +1,283 @@
+---
+// The README's "How Eulix compares" table.
+type Level = 'yes' | 'partial' | 'no';
+interface Cell {
+	level: Level;
+	text: string;
+}
+
+const tools = ['ripgrep', 'IDE / LSP', 'LLM chat', 'Eulix'];
+
+const rows: { capability: string; cells: [Cell, Cell, Cell, Cell] }[] = [
+	{
+		capability: 'Find exact text',
+		cells: [
+			{ level: 'yes', text: 'Yes' },
+			{ level: 'yes', text: 'Yes' },
+			{ level: 'partial', text: 'Context-dependent' },
+			{ level: 'yes', text: 'Indexed search' },
+		],
+	},
+	{
+		capability: 'Navigate symbols',
+		cells: [
+			{ level: 'partial', text: 'Text-based' },
+			{ level: 'yes', text: 'Yes' },
+			{ level: 'partial', text: 'Context-dependent' },
+			{ level: 'yes', text: 'Symbol index' },
+		],
+	},
+	{
+		capability: 'Trace callers and callees',
+		cells: [
+			{ level: 'no', text: 'No' },
+			{ level: 'partial', text: 'Partial' },
+			{ level: 'partial', text: 'Context-dependent' },
+			{ level: 'yes', text: 'Call graph' },
+		],
+	},
+	{
+		capability: 'Understand subsystems',
+		cells: [
+			{ level: 'no', text: 'No' },
+			{ level: 'partial', text: 'Manual exploration' },
+			{ level: 'partial', text: 'Requires context' },
+			{ level: 'yes', text: 'Hybrid retrieval' },
+		],
+	},
+	{
+		capability: 'Ground answers in repository code',
+		cells: [
+			{ level: 'yes', text: 'Matches' },
+			{ level: 'yes', text: 'Source references' },
+			{ level: 'partial', text: 'Depends on supplied context' },
+			{ level: 'yes', text: 'Retrieved code context' },
+		],
+	},
+	{
+		capability: 'Keep processing local',
+		cells: [
+			{ level: 'yes', text: 'Yes' },
+			{ level: 'yes', text: 'Yes' },
+			{ level: 'partial', text: 'Provider-dependent' },
+			{ level: 'yes', text: 'Local-first' },
+		],
+	},
+	{
+		capability: 'Analyze repository-scale code',
+		cells: [
+			{ level: 'yes', text: 'Text search' },
+			{ level: 'partial', text: 'Tool-dependent' },
+			{ level: 'partial', text: 'Context limits' },
+			{ level: 'yes', text: '37.3M lines in 57.2 s' },
+		],
+	},
+];
+
+const levelLabel: Record<Level, string> = { yes: 'Supported', partial: 'Partly', no: 'Not supported' };
+
+const gaps = [
+	{ tool: 'grep', line: 'finds strings, not who calls them.' },
+	{ tool: 'an LSP', line: 'resolves a symbol you already know the name of.' },
+	{ tool: 'an LLM', line: 'answers confidently about code it has never seen.' },
+];
+---
+
+<section class="section" id="why" aria-labelledby="why-title">
+	<div class="container">
+		<div class="intro">
+			<h2 id="why-title" class="section-title reveal">You usually don't know where the answer is.</h2>
+			<ol class="gaps">
+				{
+					gaps.map((gap, i) => (
+						<li class="reveal" style={`--reveal-index: ${i + 1}`}>
+							<span class="tool">{gap.tool}</span>
+							<span>{gap.line}</span>
+						</li>
+					))
+				}
+			</ol>
+			<p class="section-lead reveal">
+				Eulix covers the space in between: callers, dependencies, types, subsystems, implementation paths and the
+				surrounding context that gives a symbol its meaning.
+			</p>
+		</div>
+
+		<div class="table-shell reveal">
+			<table>
+				<caption class="visually-hidden">How Eulix compares with ripgrep, an IDE or LSP, and LLM chat</caption>
+				<thead>
+					<tr>
+						<th scope="col">Capability</th>
+						{tools.map((tool) => <th scope="col" class:list={{ us: tool === 'Eulix' }}>{tool}</th>)}
+					</tr>
+				</thead>
+				<tbody>
+					{
+						rows.map((row) => (
+							<tr>
+								<th scope="row">{row.capability}</th>
+								{row.cells.map((cell, i) => (
+									<td class:list={{ us: i === 3 }}>
+										<span class={`level level-${cell.level}`} title={levelLabel[cell.level]}>
+											<span class="visually-hidden">{levelLabel[cell.level]}: </span>
+										</span>
+										{cell.text}
+									</td>
+								))}
+							</tr>
+						))
+					}
+				</tbody>
+			</table>
+		</div>
+		<p class="note">
+			Typical capabilities, not every tool or configuration. Remote LLM providers, when configured, may receive
+			retrieved code context.
+		</p>
+	</div>
+</section>
+
+<style>
+	.intro {
+		display: grid;
+		gap: 0;
+	}
+
+	.gaps {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 1px;
+		margin: 40px 0 0;
+		padding: 0;
+		list-style: none;
+		border: 1px solid var(--line);
+		border-radius: var(--radius-panel);
+		background: var(--line);
+		overflow: hidden;
+	}
+
+	.gaps li {
+		display: grid;
+		align-content: start;
+		gap: 6px;
+		padding: 22px 24px;
+		background: var(--bg);
+		color: var(--text);
+		font-size: 1.05rem;
+		line-height: 1.45;
+	}
+
+	.tool {
+		font-family: var(--font-mono);
+		font-size: 0.8rem;
+		color: var(--muted);
+	}
+
+	.section-lead {
+		margin-top: 28px;
+	}
+
+	.table-shell {
+		margin-top: 48px;
+		overflow-x: auto;
+		border: 1px solid var(--line);
+		border-radius: var(--radius-panel);
+		scrollbar-width: thin;
+		scrollbar-color: var(--line-strong) transparent;
+	}
+
+	table {
+		width: 100%;
+		min-width: 760px;
+		border-collapse: collapse;
+		font-size: 0.9rem;
+	}
+
+	th,
+	td {
+		padding: 14px 18px;
+		border-bottom: 1px solid var(--line);
+		text-align: left;
+		vertical-align: middle;
+	}
+
+	tbody tr:last-child > * {
+		border-bottom: 0;
+	}
+
+	thead th {
+		font-family: var(--font-mono);
+		font-size: 0.78rem;
+		font-weight: 500;
+		color: var(--muted);
+		background: var(--bg-raised);
+	}
+
+	tbody th {
+		position: sticky;
+		left: 0;
+		z-index: 1;
+		background: var(--bg);
+		color: var(--text);
+		font-weight: 550;
+		white-space: nowrap;
+	}
+
+	td {
+		color: var(--text-2);
+	}
+
+	.us {
+		background: var(--teal-wash);
+		color: var(--text);
+	}
+
+	thead th.us {
+		color: var(--teal);
+		background: rgb(94 234 212 / 0.12);
+		box-shadow: inset 0 2px 0 var(--teal);
+	}
+
+	.level {
+		display: inline-block;
+		width: 10px;
+		height: 10px;
+		margin-right: 10px;
+		border-radius: 50%;
+		vertical-align: 0;
+		border: 1.5px solid var(--muted);
+	}
+
+	.level-yes {
+		background: var(--text-2);
+		border-color: var(--text-2);
+	}
+
+	.level-partial {
+		background: conic-gradient(var(--muted) 0 50%, transparent 50% 100%);
+	}
+
+	.level-no {
+		border-color: var(--faint);
+		background: transparent;
+	}
+
+	.us .level-yes {
+		background: var(--teal);
+		border-color: var(--teal);
+	}
+
+	.note {
+		margin-top: 14px;
+		color: var(--faint);
+		font-size: 0.82rem;
+		max-width: 80ch;
+	}
+
+	@media (max-width: 860px) {
+		.gaps {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

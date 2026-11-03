@@ -1,0 +1,16 @@
+---
+import Check from '@phosphor-icons/core/assets/regular/check.svg';
+import Copy from '@phosphor-icons/core/assets/regular/copy.svg';
+
+interface Props {
+	/** Text placed on the clipboard. */
+	text: string;
+	label?: string;
+}
+const { text, label = 'Copy command' } = Astro.props;
+---
+
+<button type="button" class="copy-btn" data-copy={text} aria-label={label}>
+	<Copy class="icon-copy" width={16} height={16} aria-hidden="true" />
+	<Check class="icon-check" width={16} height={16} aria-hidden="true" />
+</button>

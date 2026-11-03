@@ -1,0 +1,200 @@
+---
+import ArrowRight from '@phosphor-icons/core/assets/regular/arrow-right.svg';
+import { withBase } from '../../lib/doc-paths.ts';
+import InstallCommand from '../InstallCommand.astro';
+
+const steps = [
+	{
+		title: 'Analyze a repository',
+		blurb: 'Once per repository.',
+		lines: [
+			{ cmd: 'cd your-project', note: '' },
+			{ cmd: 'eulix init', note: 'creates eulix.toml' },
+			{ cmd: 'eulix analyze', note: 'parse and build the index' },
+		],
+	},
+	{
+		title: 'Ask',
+		blurb: 'Interactive, or one question at a time.',
+		lines: [
+			{ cmd: 'eulix chat', note: 'interactive' },
+			{ cmd: 'eulix query "Who calls foo?"', note: 'one-shot' },
+		],
+	},
+];
+
+const guide = withBase(import.meta.env.BASE_URL, 'docs/installation/');
+---
+
+<section class="section" id="install" aria-labelledby="install-title">
+	<div class="container">
+		<h2 id="install-title" class="section-title reveal">Three steps to your first answer.</h2>
+		<p class="section-lead reveal">
+			No cloud account and no API key. Linux needs <code>bash</code> and <code>curl</code>; Windows needs PowerShell
+			and may need the Visual Studio C++ build tools.
+		</p>
+
+		<ol class="steps">
+			<li class="step reveal">
+				<div class="step-head">
+					<span class="num mono">1</span>
+					<div>
+						<h3>Install</h3>
+						<p class="blurb">macOS binaries have not been tested yet.</p>
+					</div>
+				</div>
+				<div class="step-body">
+					<InstallCommand id="install-os" />
+				</div>
+			</li>
+
+			{
+				steps.map((step, i) => (
+					<li class="step reveal" style={`--reveal-index: ${i + 1}`}>
+						<div class="step-head">
+							<span class="num mono">{i + 2}</span>
+							<div>
+								<h3>{step.title}</h3>
+								<p class="blurb">{step.blurb}</p>
+							</div>
+						</div>
+						<div class="step-body">
+							<div class="terminal">
+								{step.lines.map((line) => (
+									<div class="line">
+										<code>
+											<span class="prompt">$ </span>
+											{line.cmd}
+										</code>
+										{line.note && <span class="note"># {line.note}</span>}
+									</div>
+								))}
+							</div>
+						</div>
+					</li>
+				))
+			}
+		</ol>
+
+		<div class="after reveal">
+			<p>That's it. The index lives in <code>.eulix/</code> next to your code.</p>
+			<a class="btn btn-ghost" href={guide}>
+				Installation guide
+				<ArrowRight width={16} height={16} aria-hidden="true" />
+			</a>
+		</div>
+	</div>
+</section>
+
+<style>
+	.section-lead code,
+	.after code {
+		color: var(--gold);
+		font-size: 0.9em;
+	}
+
+	.steps {
+		margin: 48px 0 0;
+		padding: 0;
+		list-style: none;
+		border: 1px solid var(--line);
+		border-radius: var(--radius-panel);
+		background: var(--bg-raised);
+	}
+
+	.step {
+		display: grid;
+		grid-template-columns: minmax(0, 3fr) minmax(0, 9fr);
+		gap: 20px 40px;
+		padding: clamp(20px, 3vw, 32px);
+	}
+
+	.step + .step {
+		border-top: 1px solid var(--line);
+	}
+
+	.step-head {
+		display: flex;
+		align-items: flex-start;
+		gap: 16px;
+	}
+
+	.num {
+		flex: none;
+		display: inline-grid;
+		place-items: center;
+		width: 30px;
+		height: 30px;
+		border: 1px solid var(--teal-line);
+		border-radius: 50%;
+		color: var(--teal);
+		font-size: 0.82rem;
+	}
+
+	h3 {
+		font-size: 1.15rem;
+		letter-spacing: -0.015em;
+		line-height: 30px;
+	}
+
+	.blurb {
+		margin-top: 4px;
+		color: var(--muted);
+		font-size: 0.9rem;
+	}
+
+	.step-body {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr);
+		gap: 12px;
+		min-width: 0;
+	}
+
+	.terminal {
+		display: grid;
+		gap: 10px;
+		padding: 16px 18px;
+		border: 1px solid var(--line-strong);
+		border-radius: var(--radius-control);
+		background: var(--bg-inset);
+		font-family: var(--font-mono);
+		font-size: 0.85rem;
+	}
+
+	.line {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 2px 16px;
+	}
+
+	.line code {
+		color: var(--text);
+		font-size: inherit;
+	}
+
+	.prompt {
+		color: var(--teal);
+		user-select: none;
+	}
+
+	.note {
+		color: var(--faint);
+		font-size: 0.8rem;
+	}
+
+	.after {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: 16px;
+		margin-top: 24px;
+		color: var(--text-2);
+	}
+
+	@media (max-width: 860px) {
+		.step {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

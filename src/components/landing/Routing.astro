@@ -1,0 +1,928 @@
+---
+// Automatic routing, end to end: a raw query goes in, the rule-based router
+// picks a path, and the result comes back either as a direct answer from the
+// index or as a token-budgeted context window built by the etiya engine.
+// Data and provenance: src/data/routing-demo.ts.
+import { etiyaSteps, routingExamples } from '../../data/routing-demo.ts';
+
+const initialIndex = 4; // open on the LLM path, the one this section is about
+const initial = routingExamples[initialIndex];
+const approxTokens = (s: string) => Math.max(1, Math.floor(s.length / 4));
+const laneTags: { tag: string; label: string }[] = [
+	{ tag: 'location', label: 'location' },
+	{ tag: 'usage', label: 'usage' },
+	{ tag: 'callgraph', label: 'call graph' },
+	{ tag: 'metrics', label: 'metrics' },
+];
+const split = (path: string) => {
+	const i = path.lastIndexOf('/');
+	return { dir: path.slice(0, i + 1), base: path.slice(i + 1) };
+};
+const fmt = (n: number) => n.toLocaleString('en-US');
+const isLlm = initial.route === 'llm';
+const clientData = routingExamples.map((ex) => ({
+	key: ex.key,
+	query: ex.query,
+	route: ex.route,
+	decision: ex.decision,
+	...(ex.route === 'llm'
+		? { chunkCount: ex.chunkCount, fileCount: ex.fileCount, budget: ex.budget }
+		: {}),
+}));
+---
+
+<section class="section" id="routing" aria-labelledby="routing-title">
+	<div class="container">
+		<h2 id="routing-title" class="section-title reveal">Lookups hit the index. Reasoning gets context.</h2>
+		<p class="section-lead reveal">
+			A rule-based classifier routes every query automatically. Location, usage, call-graph and metrics questions are
+			answered straight from the index. Questions that need reasoning take the LLM path, where the etiya engine builds a
+			ranked, token-budgeted context window for your model.
+		</p>
+
+		<div class="demo reveal" data-routing-demo>
+			<div class="picker">
+				<p class="label" id="rd-label">Try a query</p>
+				<div role="tablist" aria-labelledby="rd-label" aria-orientation="vertical">
+					{
+						routingExamples.map((ex, i) => (
+							<button
+								type="button"
+								role="tab"
+								id={`rd-tab-${ex.key}`}
+								aria-controls="rd-flow"
+								aria-selected={i === initialIndex ? 'true' : 'false'}
+								tabindex={i === initialIndex ? 0 : -1}
+								data-index={i}
+							>
+								<span class="caret" aria-hidden="true">›</span>
+								<span class="q">{ex.query}</span>
+								<span class:list={['kind', ex.route === 'llm' ? 'kind-llm' : 'kind-index']}>
+									{ex.route === 'llm' ? 'LLM' : 'index'}
+								</span>
+							</button>
+						))
+					}
+				</div>
+			</div>
+
+			<div
+				class="flow p-classified p-routed p-done"
+				id="rd-flow"
+				role="tabpanel"
+				aria-labelledby={`rd-tab-${initial.key}`}
+				data-route={isLlm ? 'llm' : 'index'}
+				data-tag={initial.route}
+			>
+				<!-- 1. What the user typed: an unstructured string. -->
+				<div class="stage">
+					<p class="stage-label"><span class="n">1</span> Raw query</p>
+					<div class="raw">
+						<code class="raw-text">"<span data-raw>{initial.query}</span>"</code>
+						<p class="raw-meta">
+							<span>string</span>
+							<span data-raw-tokens>~{approxTokens(initial.query)} tokens</span>
+							<span>no structure</span>
+						</p>
+					</div>
+				</div>
+
+				<div class="wire" aria-hidden="true"></div>
+
+				<!-- 2. The router: rules decide, no model involved. -->
+				<div class="stage">
+					<p class="stage-label"><span class="n">2</span> Router</p>
+					<p class="classifier">
+						<span class="chip">classifier</span>
+						<span class="muted">rule-based, no model</span>
+						<span class="decision" data-decision>→ {initial.decision}</span>
+					</p>
+					<div class="lanes">
+						<div class="lane lane-index">
+							<p class="lane-title">Index <span class="lane-badge badge-teal">no LLM</span></p>
+							<p class="lane-sub">answered directly from <code>.eulix/</code></p>
+							<ul class="lane-tags">
+								{laneTags.map((t) => <li data-lane-tag={t.tag}>{t.label}</li>)}
+							</ul>
+						</div>
+						<div class="lane lane-llm">
+							<p class="lane-title">LLM path <span class="lane-badge badge-violet">etiya</span></p>
+							<p class="lane-sub">context window for your model</p>
+							<ol class="steps">
+								{etiyaSteps.map((s, i) => <li style={`--i: ${i}`}>{s}</li>)}
+							</ol>
+						</div>
+					</div>
+				</div>
+
+				<div class="wire" aria-hidden="true"></div>
+
+				<!-- 3. What comes back. -->
+				<div class="stage stage-out">
+					<p class="stage-label"><span class="n">3</span> Returned</p>
+					{
+						routingExamples.map((ex) =>
+							ex.route === 'llm' ? (
+								<div class="out out-ctx" data-out={ex.key} hidden={ex.key !== initial.key}>
+									<div class="out-head">
+										<span class="badge badge-violet">context window</span>
+										<span class="meta mono">engine: {ex.engine}</span>
+										<span class="meta mono">selector: query MMR</span>
+									</div>
+									<div class="meters">
+										<div class="meter">
+											<p class="meter-row">
+												<span>tokens</span>
+												<span class="mono">
+													≈{fmt(ex.estTokens)} / {fmt(ex.budget)}
+												</span>
+											</p>
+											<span class="bar" style={`--fill: ${Math.min(1, ex.estTokens / ex.budget)}`} />
+										</div>
+										<div class="meter">
+											<p class="meter-row">
+												<span>chunks</span>
+												<span class="mono">
+													{ex.chunkCount} / {ex.chunkCap} cap · {ex.fileCount} files
+												</span>
+											</p>
+											<span class="bar" style={`--fill: ${ex.chunkCount / ex.chunkCap}`} />
+										</div>
+									</div>
+									<ol class="chunks" aria-label="Highest-ranked chunks">
+										{ex.chunks.map((ch, i) => (
+											<li style={`--i: ${i}`}>
+												<span class="rank">{i + 1}</span>
+												<span class="file">
+													<span class="dir">{split(ch.file).dir}</span>
+													<span class="base">{split(ch.file).base}</span>
+												</span>
+												<span class="lines">
+													L{ch.lines[0]}–{ch.lines[1]}
+												</span>
+											</li>
+										))}
+										<li class="more">+{ex.chunkCount - ex.chunks.length} more chunks</li>
+									</ol>
+									<p class="out-foot">
+										{ex.note}{' '}<span class="arrow">→ handed to your model.</span>
+									</p>
+								</div>
+							) : (
+								<div class="out out-direct" data-out={ex.key} hidden={ex.key !== initial.key}>
+									<div class="out-head">
+										<span class="badge badge-teal">direct answer</span>
+										<span class="meta mono">{ex.source}</span>
+									</div>
+									<p class="out-title mono">{ex.title}</p>
+									<ul class="out-lines">
+										{ex.lines.map((l) => (
+											<li>
+												{l.label && (
+													<span class:list={['k', l.label.length > 2 ? 'k-label' : 'k-arrow']}>{l.label}</span>
+												)}
+												<span class:list={{ mono: l.mono }}>{l.value}</span>
+											</li>
+										))}
+									</ul>
+									<p class="out-foot">
+										<span class="arrow">→ returned as-is.</span> No engine, no model.
+									</p>
+								</div>
+							),
+						)
+					}
+				</div>
+			</div>
+		</div>
+
+		<p class="visually-hidden" aria-live="polite" data-announce></p>
+		<p class="footnote reveal">
+			Real queries against Eulix's own repository. Context windows are from an etiya evaluation run; token totals are
+			estimated at four characters per token, the same estimator Eulix uses.
+		</p>
+		<script type="application/json" data-routing-data set:html={JSON.stringify(clientData)} />
+	</div>
+</section>
+
+<script>
+	interface Example {
+		key: string;
+		query: string;
+		route: string;
+		decision: string;
+		chunkCount?: number;
+		fileCount?: number;
+		budget?: number;
+	}
+
+	const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+	function setupRoutingDemo(root: HTMLElement) {
+		const examples = JSON.parse(
+			root.parentElement!.querySelector('[data-routing-data]')!.textContent ?? '[]',
+		) as Example[];
+		const tabs = [...root.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+		const flow = root.querySelector<HTMLElement>('.flow')!;
+		const raw = flow.querySelector<HTMLElement>('[data-raw]')!;
+		const rawTokens = flow.querySelector<HTMLElement>('[data-raw-tokens]')!;
+		const decision = flow.querySelector<HTMLElement>('[data-decision]')!;
+		const outputs = [...flow.querySelectorAll<HTMLElement>('[data-out]')];
+		const announce = root.parentElement!.querySelector<HTMLElement>('[data-announce]')!;
+		const phases = ['p-classified', 'p-routed', 'p-done'];
+
+		let timers: number[] = [];
+		let index = tabs.findIndex((t) => t.getAttribute('aria-selected') === 'true');
+		const clear = () => {
+			timers.forEach((t) => window.clearTimeout(t));
+			timers = [];
+		};
+		const later = (ms: number, fn: () => void) => timers.push(window.setTimeout(fn, ms));
+
+		const say = (ex: Example) => {
+			announce.textContent =
+				ex.route === 'llm'
+					? `Routed to the LLM path. etiya returned ${ex.chunkCount} chunks from ${ex.fileCount} files within a ${ex.budget}-token budget.`
+					: `Routed to the index: ${ex.decision}. Answered without a model.`;
+		};
+
+		const select = (next: number, animate: boolean, focus = false) => {
+			index = (next + examples.length) % examples.length;
+			const ex = examples[index];
+			tabs.forEach((t, i) => {
+				const on = i === index;
+				t.setAttribute('aria-selected', String(on));
+				t.tabIndex = on ? 0 : -1;
+			});
+			if (focus) tabs[index].focus();
+			flow.setAttribute('aria-labelledby', tabs[index].id);
+			flow.dataset.route = ex.route === 'llm' ? 'llm' : 'index';
+			flow.dataset.tag = ex.route;
+			decision.textContent = `→ ${ex.decision}`;
+			rawTokens.textContent = `~${Math.max(1, Math.floor(ex.query.length / 4))} tokens`;
+			outputs.forEach((o) => (o.hidden = o.dataset.out !== ex.key));
+			clear();
+
+			if (!animate || reduceMotion) {
+				raw.textContent = ex.query;
+				flow.classList.add(...phases);
+				say(ex);
+				return;
+			}
+
+			// Replay the route: type the query, classify, pick a lane, return.
+			flow.classList.remove(...phases);
+			raw.textContent = '';
+			flow.classList.add('is-typing');
+			let shown = 0;
+			const step = Math.max(10, Math.min(24, 1100 / ex.query.length));
+			const type = () => {
+				shown += 1;
+				raw.textContent = ex.query.slice(0, shown);
+				if (shown < ex.query.length) {
+					later(step, type);
+					return;
+				}
+				flow.classList.remove('is-typing');
+				later(250, () => flow.classList.add('p-classified'));
+				later(700, () => flow.classList.add('p-routed'));
+				later(ex.route === 'llm' ? 1500 : 1050, () => {
+					flow.classList.add('p-done');
+					say(ex);
+				});
+			};
+			later(120, type);
+		};
+
+		// Auto-play through the examples while visible, until someone takes over.
+		let autoplay: number | undefined;
+		let held = false;
+		let visible = false;
+		const stop = () => {
+			window.clearInterval(autoplay);
+			autoplay = undefined;
+		};
+		const start = () => {
+			if (reduceMotion || held || !visible || autoplay !== undefined) return;
+			autoplay = window.setInterval(() => select(index + 1, true), 7000);
+		};
+		const takeOver = () => {
+			held = true;
+			stop();
+		};
+
+		tabs.forEach((tab, i) => {
+			tab.addEventListener('click', () => {
+				takeOver();
+				select(i, true);
+			});
+			tab.addEventListener('keydown', (event) => {
+				const moves: Record<string, number> = {
+					ArrowDown: i + 1,
+					ArrowRight: i + 1,
+					ArrowUp: i - 1,
+					ArrowLeft: i - 1,
+					Home: 0,
+					End: tabs.length - 1,
+				};
+				if (!(event.key in moves)) return;
+				event.preventDefault();
+				takeOver();
+				select(moves[event.key], false, true);
+			});
+		});
+		root.addEventListener('pointerenter', stop);
+		root.addEventListener('pointerleave', start);
+		root.addEventListener('focusin', takeOver);
+		new IntersectionObserver(
+			([entry]) => {
+				visible = entry.isIntersecting;
+				if (visible) start();
+				else stop();
+			},
+			{ threshold: 0.35 },
+		).observe(root);
+	}
+
+	document.querySelectorAll<HTMLElement>('[data-routing-demo]').forEach(setupRoutingDemo);
+</script>
+
+<style>
+	.demo {
+		display: grid;
+		grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
+		margin-top: 48px;
+		border: 1px solid var(--line);
+		border-radius: var(--radius-panel);
+		background: var(--bg-raised);
+		overflow: hidden;
+	}
+
+	/* ── Query picker ── */
+
+	.picker {
+		padding: 22px;
+		border-right: 1px solid var(--line);
+	}
+
+	.label {
+		margin-bottom: 12px;
+		font-family: var(--font-mono);
+		font-size: 0.76rem;
+		color: var(--muted);
+	}
+
+	[role='tablist'] {
+		display: grid;
+		gap: 6px;
+	}
+
+	[role='tab'] {
+		display: grid;
+		grid-template-columns: auto minmax(0, 1fr) auto;
+		align-items: start;
+		gap: 10px;
+		width: 100%;
+		min-height: 48px;
+		padding: 11px 12px;
+		border: 1px solid transparent;
+		border-radius: var(--radius-control);
+		background: transparent;
+		color: var(--text-2);
+		font-family: var(--font-mono);
+		font-size: 0.8rem;
+		line-height: 1.45;
+		text-align: left;
+		cursor: pointer;
+		transition:
+			background-color 180ms var(--ease-out),
+			border-color 180ms var(--ease-out),
+			color 180ms var(--ease-out);
+	}
+
+	.caret {
+		color: var(--faint);
+	}
+
+	.kind {
+		padding: 0 6px;
+		border: 1px solid var(--line-strong);
+		border-radius: 4px;
+		font-size: 0.64rem;
+		line-height: 1.6;
+		color: var(--muted);
+	}
+
+	[role='tab'][aria-selected='true'] {
+		border-color: var(--line-strong);
+		background: var(--bg-panel);
+		color: var(--text);
+	}
+
+	[role='tab'][aria-selected='true'] .caret {
+		color: var(--teal);
+	}
+
+	[role='tab'][aria-selected='true'] .kind-index {
+		border-color: var(--teal-line);
+		color: var(--teal);
+	}
+
+	[role='tab'][aria-selected='true'] .kind-llm {
+		border-color: var(--violet-line);
+		color: var(--lilac);
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		[role='tab']:not([aria-selected='true']):hover {
+			background: rgb(255 255 255 / 0.03);
+			color: var(--text);
+		}
+	}
+
+	/* ── Flow ── */
+
+	.flow {
+		display: flex;
+		flex-direction: column;
+		padding: 24px clamp(18px, 3vw, 32px) 28px;
+		background-image: radial-gradient(rgb(231 233 238 / 0.045) 1px, transparent 1px);
+		background-size: 18px 18px;
+	}
+
+	.stage-label {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		margin-bottom: 10px;
+		font-family: var(--font-mono);
+		font-size: 0.72rem;
+		color: var(--muted);
+	}
+
+	.n {
+		display: inline-grid;
+		place-items: center;
+		width: 18px;
+		height: 18px;
+		border: 1px solid var(--line-strong);
+		border-radius: 50%;
+		font-size: 0.64rem;
+	}
+
+	.wire {
+		width: 1px;
+		height: 20px;
+		margin: 6px 0 6px 9px;
+		background: var(--line-strong);
+	}
+
+	/* 1. Raw query: deliberately flat, like a string literal. */
+	.raw {
+		padding: 12px 14px;
+		border: 1px dashed var(--line-strong);
+		border-radius: var(--radius-control);
+		background: var(--bg-inset);
+	}
+
+	.raw-text {
+		display: block;
+		color: var(--text-2);
+		font-size: 0.86rem;
+		line-height: 1.5;
+		overflow-wrap: anywhere;
+	}
+
+	.is-typing .raw-text [data-raw]::after {
+		content: '';
+		display: inline-block;
+		width: 7px;
+		height: 1.05em;
+		margin-left: 1px;
+		vertical-align: -0.15em;
+		background: var(--teal);
+	}
+
+	.raw-meta {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+		margin-top: 8px;
+	}
+
+	.raw-meta span {
+		padding: 0 6px;
+		border: 1px solid var(--line);
+		border-radius: 4px;
+		color: var(--faint);
+		font-family: var(--font-mono);
+		font-size: 0.68rem;
+	}
+
+	/* 2. Router */
+	.classifier {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 6px 10px;
+		font-size: 0.86rem;
+	}
+
+	.muted {
+		color: var(--muted);
+	}
+
+	.decision {
+		font-family: var(--font-mono);
+		font-size: 0.82rem;
+		color: var(--text);
+		opacity: 0;
+		transform: translateX(-4px);
+		transition:
+			opacity 240ms var(--ease-out),
+			transform 240ms var(--ease-out);
+	}
+
+	.p-classified .decision {
+		opacity: 1;
+		transform: none;
+	}
+
+	.lanes {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 10px;
+		margin-top: 12px;
+	}
+
+	.lane {
+		padding: 12px 14px;
+		border: 1px solid var(--line);
+		border-radius: var(--radius-control);
+		background: var(--bg-panel);
+		transition:
+			opacity 260ms var(--ease-out),
+			border-color 260ms var(--ease-out),
+			background-color 260ms var(--ease-out);
+	}
+
+	.lane-title {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		color: var(--text);
+		font-weight: 600;
+		font-size: 0.92rem;
+	}
+
+	.lane-sub {
+		margin-top: 2px;
+		color: var(--muted);
+		font-size: 0.8rem;
+	}
+
+	.lane-sub code {
+		color: var(--gold);
+		font-size: 0.9em;
+	}
+
+	.lane-badge,
+	.badge {
+		padding: 1px 7px;
+		border: 1px solid;
+		border-radius: 999px;
+		font-family: var(--font-mono);
+		font-size: 0.66rem;
+		font-weight: 500;
+		line-height: 1.6;
+	}
+
+	.badge-teal {
+		border-color: var(--teal-line);
+		background: var(--teal-wash);
+		color: var(--teal);
+	}
+
+	.badge-violet {
+		border-color: var(--violet-line);
+		background: var(--violet-wash);
+		color: var(--lilac);
+	}
+
+	.lane-tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 5px;
+		margin: 10px 0 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.lane-tags li {
+		padding: 1px 7px;
+		border: 1px solid var(--line);
+		border-radius: 4px;
+		color: var(--muted);
+		font-family: var(--font-mono);
+		font-size: 0.68rem;
+		transition:
+			color 220ms var(--ease-out),
+			border-color 220ms var(--ease-out);
+	}
+
+	.steps {
+		display: grid;
+		gap: 3px;
+		margin: 10px 0 0;
+		padding: 0;
+		list-style: none;
+		counter-reset: step;
+	}
+
+	.steps li {
+		counter-increment: step;
+		display: flex;
+		gap: 8px;
+		color: var(--faint);
+		font-family: var(--font-mono);
+		font-size: 0.7rem;
+		transition: color 220ms var(--ease-out);
+	}
+
+	.steps li::before {
+		content: counter(step);
+		color: var(--faint);
+	}
+
+	/* Lane chosen */
+	.p-routed[data-route='index'] .lane-index {
+		border-color: var(--teal-line);
+		background: var(--teal-wash);
+	}
+
+	.p-routed[data-route='index'] .lane-llm,
+	.p-routed[data-route='llm'] .lane-index {
+		opacity: 0.4;
+	}
+
+	.p-routed[data-route='llm'] .lane-llm {
+		border-color: var(--violet-line);
+		background: var(--violet-wash);
+	}
+
+	.p-routed[data-tag='location'] [data-lane-tag='location'],
+	.p-routed[data-tag='usage'] [data-lane-tag='usage'],
+	.p-routed[data-tag='callgraph'] [data-lane-tag='callgraph'],
+	.p-routed[data-tag='metrics'] [data-lane-tag='metrics'] {
+		border-color: var(--teal-line);
+		color: var(--teal);
+	}
+
+	.p-routed[data-route='llm'] .steps li {
+		color: var(--text-2);
+		transition-delay: calc(var(--i) * 170ms);
+	}
+
+	.p-routed[data-route='llm'] .steps li::before {
+		color: var(--violet);
+	}
+
+	/* 3. Returned */
+	.stage-out {
+		min-height: 360px;
+	}
+
+	.out {
+		border-radius: 10px;
+		overflow: hidden;
+		opacity: 0;
+		transform: translateY(8px);
+		transition:
+			opacity 320ms var(--ease-out),
+			transform 320ms var(--ease-out);
+	}
+
+	.p-done .out {
+		opacity: 1;
+		transform: none;
+	}
+
+	.out-head {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 6px 12px;
+		padding: 10px 14px;
+		border-bottom: 1px solid var(--line);
+		background: var(--bg-inset);
+	}
+
+	.meta {
+		color: var(--muted);
+		font-size: 0.72rem;
+	}
+
+	.out-foot {
+		padding: 10px 14px;
+		border-top: 1px solid var(--line);
+		color: var(--muted);
+		font-size: 0.8rem;
+	}
+
+	.arrow {
+		color: var(--text-2);
+		font-family: var(--font-mono);
+		font-size: 0.76rem;
+	}
+
+	.out-direct {
+		border: 1px solid var(--teal-line);
+		background: var(--bg-panel);
+	}
+
+	.out-title {
+		padding: 12px 14px 4px;
+		color: var(--text);
+		font-size: 0.82rem;
+	}
+
+	.out-lines {
+		display: grid;
+		gap: 4px;
+		margin: 0;
+		padding: 6px 14px 14px;
+		list-style: none;
+		font-size: 0.8rem;
+		color: var(--text-2);
+	}
+
+	.out-lines li {
+		display: flex;
+		gap: 10px;
+		white-space: pre-wrap;
+		overflow-wrap: anywhere;
+	}
+
+	.k {
+		flex: none;
+		font-family: var(--font-mono);
+	}
+
+	.k-arrow {
+		color: var(--teal);
+	}
+
+	.k-label {
+		min-width: 7.5em;
+		color: var(--muted);
+		font-family: var(--font-sans);
+	}
+
+	/* The structured result: header, two meters, a ranked table. */
+	.out-ctx {
+		border: 1px solid var(--violet-line);
+		background: var(--bg-panel);
+		box-shadow: 0 24px 60px -36px rgb(167 139 250 / 0.35);
+	}
+
+	.meters {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 14px;
+		padding: 12px 14px;
+		border-bottom: 1px solid var(--line);
+	}
+
+	.meter-row {
+		display: flex;
+		justify-content: space-between;
+		gap: 8px;
+		margin-bottom: 6px;
+		color: var(--muted);
+		font-size: 0.74rem;
+	}
+
+	.meter-row .mono {
+		color: var(--text-2);
+	}
+
+	.bar {
+		position: relative;
+		display: block;
+		height: 6px;
+		border-radius: 3px;
+		background: var(--line);
+		overflow: hidden;
+	}
+
+	.bar::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		border-radius: 3px;
+		background: linear-gradient(90deg, var(--violet), var(--lilac));
+		transform-origin: left;
+		transform: scaleX(0);
+		transition: transform 700ms var(--ease-out) 120ms;
+	}
+
+	.p-done .bar::after {
+		transform: scaleX(var(--fill));
+	}
+
+	.chunks {
+		margin: 0;
+		padding: 6px 0;
+		list-style: none;
+		font-family: var(--font-mono);
+		font-size: 0.74rem;
+	}
+
+	.chunks li {
+		display: grid;
+		grid-template-columns: 22px minmax(0, 1fr) auto;
+		align-items: baseline;
+		gap: 10px;
+		padding: 5px 14px;
+		opacity: 0;
+		transition: opacity 260ms var(--ease-out);
+		transition-delay: calc(var(--i, 0) * 60ms + 200ms);
+	}
+
+	.p-done .chunks li {
+		opacity: 1;
+	}
+
+	.chunks li + li {
+		border-top: 1px solid rgb(30 34 43 / 0.7);
+	}
+
+	.rank {
+		color: var(--faint);
+		text-align: right;
+	}
+
+	.file {
+		display: flex;
+		min-width: 0;
+		white-space: nowrap;
+	}
+
+	/* The directory gives way first; the file name always stays visible. */
+	.dir {
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		color: var(--faint);
+	}
+
+	.base {
+		flex: none;
+		color: var(--text);
+	}
+
+	.lines {
+		color: var(--lilac);
+	}
+
+	.chunks .more {
+		display: block;
+		color: var(--muted);
+		padding-left: 46px;
+	}
+
+	.footnote {
+		margin-top: 14px;
+		max-width: 80ch;
+		color: var(--faint);
+		font-size: 0.82rem;
+	}
+
+	@media (max-width: 960px) {
+		.demo {
+			grid-template-columns: 1fr;
+		}
+		.picker {
+			border-right: 0;
+			border-bottom: 1px solid var(--line);
+		}
+		.stage-out {
+			min-height: 0;
+		}
+	}
+
+	@media (max-width: 560px) {
+		.lanes,
+		.meters {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.out,
+		.decision,
+		.chunks li {
+			transform: none;
+		}
+	}
+</style>

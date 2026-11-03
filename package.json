@@ -1,0 +1,30 @@
+{
+  "name": "eulix-landing",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "scripts/dev.sh",
+    "docs:fetch": "scripts/fetch-docs.sh",
+    "build": "astro build",
+    "build:fresh": "scripts/dev.sh build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/markdown-satteri": "^0.4.6",
+    "@fontsource-variable/geist": "^5.3.0",
+    "@fontsource-variable/geist-mono": "^5.3.0",
+    "@phosphor-icons/core": "^2.1.1",
+    "astro": "^7.4.5",
+    "mermaid": "^12.2.0",
+    "simple-icons": "^16.36.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.12",
+    "@types/node": "^24.19.2",
+    "typescript": "^5.9.3"
+  },
+  "packageManager": "pnpm@12.15.0"
+}

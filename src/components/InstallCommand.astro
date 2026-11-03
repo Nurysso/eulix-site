@@ -1,0 +1,149 @@
+---
+// The install one-liner with a Linux / Windows switch. Used in the hero and in
+// the install section, so `id` keeps their element ids apart.
+import { SITE } from '../site.config.ts';
+import CopyButton from './CopyButton.astro';
+
+interface Props {
+	id: string;
+}
+
+const { id } = Astro.props;
+const platforms = [
+	{ key: 'linux', label: 'Linux', command: SITE.install.linux, prompt: '$' },
+	{ key: 'windows', label: 'Windows', command: SITE.install.windows, prompt: 'PS>' },
+];
+---
+
+<div class="install" data-os-tabs>
+	<div class="tablist" role="tablist" aria-label="Operating system">
+		{
+			platforms.map((p, i) => (
+				<button
+					type="button"
+					role="tab"
+					id={`${id}-tab-${p.key}`}
+					aria-controls={`${id}-panel-${p.key}`}
+					aria-selected={i === 0 ? 'true' : 'false'}
+					tabindex={i === 0 ? 0 : -1}
+					data-os={p.key}
+				>
+					{p.label}
+				</button>
+			))
+		}
+	</div>
+	{
+		platforms.map((p, i) => (
+			<div class="os-panel" role="tabpanel" id={`${id}-panel-${p.key}`} aria-labelledby={`${id}-tab-${p.key}`} hidden={i !== 0}>
+				<p class="os-label mono">{p.label}</p>
+				<div class="cmd install-cmd">
+					<code>
+						<span class="prompt">{p.prompt} </span>
+						{p.command}
+					</code>
+					<CopyButton text={p.command} label={`Copy the ${p.label} install command`} />
+				</div>
+			</div>
+		))
+	}
+</div>
+
+<script>
+	const isWindows = /windows/i.test(navigator.userAgent);
+	document.querySelectorAll<HTMLElement>('[data-os-tabs]').forEach((root) => {
+		const tabs = [...root.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+		const show = (tab: HTMLButtonElement, focus = false) => {
+			tabs.forEach((t) => {
+				const on = t === tab;
+				t.setAttribute('aria-selected', String(on));
+				t.tabIndex = on ? 0 : -1;
+				const panel = document.getElementById(t.getAttribute('aria-controls')!);
+				if (panel) panel.hidden = !on;
+			});
+			if (focus) tab.focus();
+		};
+		tabs.forEach((tab, i) => {
+			tab.addEventListener('click', () => show(tab));
+			tab.addEventListener('keydown', (event) => {
+				if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+				event.preventDefault();
+				const step = event.key === 'ArrowRight' ? 1 : -1;
+				show(tabs[(i + step + tabs.length) % tabs.length], true);
+			});
+		});
+		if (isWindows) {
+			const win = tabs.find((t) => t.dataset.os === 'windows');
+			if (win) show(win);
+		}
+	});
+</script>
+
+<style>
+	.install {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr);
+		gap: 10px;
+	}
+
+	.tablist {
+		display: inline-flex;
+		justify-self: start;
+		gap: 4px;
+		padding: 4px;
+		border: 1px solid var(--line);
+		border-radius: var(--radius-control);
+		background: var(--bg-inset);
+	}
+
+	[role='tab'] {
+		min-height: 36px;
+		padding: 0 14px;
+		border: 0;
+		border-radius: 6px;
+		background: transparent;
+		color: var(--muted);
+		font-size: 0.85rem;
+		cursor: pointer;
+		transition:
+			background-color 160ms var(--ease-out),
+			color 160ms var(--ease-out);
+	}
+
+	[role='tab'][aria-selected='true'] {
+		background: var(--bg-panel);
+		color: var(--text);
+		box-shadow: inset 0 0 0 1px var(--line-strong);
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		[role='tab']:not([aria-selected='true']):hover {
+			color: var(--text);
+		}
+	}
+
+	.os-label {
+		display: none;
+		margin-bottom: 6px;
+		font-size: 0.75rem;
+		color: var(--muted);
+	}
+
+	/* Long one-liners wrap instead of hiding behind a scroll. */
+	.install-cmd code {
+		white-space: normal;
+		overflow-wrap: anywhere;
+		line-height: 1.55;
+	}
+
+	/* Without JS, show both commands with labels instead of tabs. */
+	:global(html:not(.js)) .tablist {
+		display: none;
+	}
+	:global(html:not(.js)) .os-panel[hidden] {
+		display: block;
+	}
+	:global(html:not(.js)) .os-label {
+		display: block;
+	}
+</style>
