@@ -6,7 +6,7 @@ import { eulixShikiTheme } from './src/lib/markdown/shiki-theme.ts';
 import { readVersions } from './src/lib/read-versions.ts';
 import { COMPONENTS, SITE } from './src/site.config.ts';
 
-// Serving from a sub-path (e.g. GitHub Pages at /eulix/)? Build with SITE_BASE=/eulix/.
+// Serving from a sub-path (e.g. GitHub Pages at /eulix-site/)? Build with SITE_BASE=/eulix-site/.
 const base = process.env.SITE_BASE ?? '/';
 
 const here = new URL('./', import.meta.url);

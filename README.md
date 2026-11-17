@@ -1,6 +1,8 @@
 # Eulix website
 
-The landing page and documentation site for Eulix, built with [Astro](https://astro.build) 7.
+The landing page and documentation site for [Eulix](https://github.com/Nurysso/eulix), built with [Astro](https://astro.build) 7.
+
+This repo ([Nurysso/eulix-site](https://github.com/Nurysso/eulix-site)) only holds the website. The Eulix code and its docs live in [Nurysso/eulix](https://github.com/Nurysso/eulix); the docs are pulled in at build time (see below).
 
 ```bash
 pnpm install
@@ -77,10 +79,14 @@ Versions are read from source at build time, so they never go stale:
 
 ## Deploying under a sub-path
 
-For GitHub Pages at `https://<user>.github.io/eulix/`, build with the base path set:
+The site is served from GitHub Pages at `https://nurysso.github.io/eulix-site/`, a sub-path named after this repo. CI sets the base path for you; to reproduce that build locally:
 
 ```bash
-SITE_URL=https://<user>.github.io SITE_BASE=/eulix/ npm run build
+SITE_URL=https://nurysso.github.io SITE_BASE=/eulix-site/ pnpm build
 ```
 
-`SITE_URL` also enables canonical and Open Graph URLs.
+`SITE_BASE` must match the repo name, or links and assets break. `SITE_URL` gives Astro the site's public address, which adds a `<link rel="canonical">` and an `og:url` tag to every page (`src/layouts/Base.astro`). Without it those tags are left out.
+
+## Credits
+
+Display type (headings, the Eulix wordmark, key lines) is set in [Redaction](https://www.redaction.us/), designed by Jeremy Mickel (MCKL) for the Redaction project. It is free under the SIL Open Font License 1.1 / LGPL 2.1; the license is in `src/fonts/redaction/OFL.txt`.

@@ -38,7 +38,7 @@ export function sectionOf(relativePath: string): string {
 	return parts.length > 1 ? parts[0] : ROOT_SECTION;
 }
 
-/** Joins a site-relative path onto the configured base (`/` or `/eulix/`). */
+/** Joins a site-relative path onto the configured base (`/` or `/eulix-site/`). */
 export function withBase(base: string, path: string): string {
 	const trimmedBase = base.endsWith('/') ? base : `${base}/`;
 	return `${trimmedBase}${path.replace(/^\/+/, '')}`;
