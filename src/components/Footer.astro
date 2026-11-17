@@ -1,5 +1,7 @@
 ---
+import { HUBS } from '../data/hubs.ts';
 import { withBase } from '../lib/doc-paths.ts';
+import { docUrl } from '../lib/docs.ts';
 import { FIRST_DOC, SITE } from '../site.config.ts';
 import Logo from './Logo.astro';
 
@@ -18,12 +20,16 @@ const columns = [
 		],
 	},
 	{
+		title: 'Inside Eulix',
+		links: HUBS.map((h) => ({ label: h.name, href: withBase(base, `${h.slug}/`) })),
+	},
+	{
 		title: 'Docs',
 		links: [
-			{ label: 'About Eulix', href: withBase(base, `docs/${FIRST_DOC}/`) },
-			{ label: 'Installation', href: withBase(base, 'docs/installation/') },
-			{ label: 'Architecture', href: withBase(base, 'docs/architecture/') },
-			{ label: 'Known issues', href: withBase(base, 'docs/known-issues/') },
+			{ label: 'About Eulix', href: await docUrl(FIRST_DOC) },
+			{ label: 'Installation', href: await docUrl('installation') },
+			{ label: 'Known issues', href: await docUrl('known-issues/overview') },
+			{ label: 'All docs', href: withBase(base, 'docs/') },
 		],
 	},
 	{
@@ -79,7 +85,7 @@ const columns = [
 
 	.grid {
 		display: grid;
-		grid-template-columns: 1.6fr repeat(3, 1fr);
+		grid-template-columns: 1.6fr repeat(4, 1fr);
 		gap: 32px;
 	}
 

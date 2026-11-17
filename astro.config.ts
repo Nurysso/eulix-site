@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'node:url';
 import { satteri } from '@astrojs/markdown-satteri';
+import sitemap from '@astrojs/sitemap';
 import { defineConfig } from 'astro/config';
 import { docsLinks, githubAlerts, mermaidBlocks, scrollableTables } from './src/lib/markdown/plugins.ts';
 import { eulixShikiTheme } from './src/lib/markdown/shiki-theme.ts';
@@ -15,9 +16,16 @@ const docsDir = fileURLToPath(new URL(`${SITE.docsDir}/`, here));
 const versions = readVersions(repoRoot, COMPONENTS);
 
 export default defineConfig({
-	site: process.env.SITE_URL,
+	// Canonical URLs, the sitemap and JSON-LD all need an absolute origin.
+	site: process.env.SITE_URL || SITE.url,
 	base,
 	trailingSlash: 'ignore',
+	integrations: [
+		sitemap({
+			// The 404 page is noindex; it has no place in the sitemap.
+			filter: (page) => !/\/404\/?$/.test(new URL(page).pathname),
+		}),
+	],
 	markdown: {
 		processor: satteri({
 			hastPlugins: [

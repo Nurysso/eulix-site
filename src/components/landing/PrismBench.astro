@@ -3,10 +3,12 @@ import Grad from '../Grad.astro';
 import ArrowRight from '@phosphor-icons/core/assets/regular/arrow-right.svg';
 import { byLanguage, corpora, corpusTotals, headline, langLabel } from '../../data/prism-bench.ts';
 import { withBase } from '../../lib/doc-paths.ts';
+import { docUrl } from '../../lib/docs.ts';
 
 const pct = (n: number) => `${n.toFixed(1)}%`;
 const allPrecision = (corpusTotals.tp / (corpusTotals.tp + corpusTotals.fp)) * 100;
-const methodHref = withBase(import.meta.env.BASE_URL, 'docs/libeulix/call-graph-accuracy/');
+const methodHref = await docUrl('libeulix/call-graph-accuracy');
+const prismHref = withBase(import.meta.env.BASE_URL, 'prism/');
 ---
 
 <section class="section" id="prism" aria-labelledby="prism-title">
@@ -110,7 +112,10 @@ const methodHref = withBase(import.meta.env.BASE_URL, 'docs/libeulix/call-graph-
 				more edges than they get wrong. Reference tools: go/types, javac, jedi, rust-analyzer, the TypeScript checker
 				and libclang. PHP isn't measured. Reproduce with <code>make bench-callgraph</code>.
 			</p>
-			<a href={methodHref}>Call-graph accuracy <ArrowRight width={14} height={14} aria-hidden="true" /></a>
+			<div class="foot-links">
+				<a href={prismHref}>About <Grad word="PRISM" /> <ArrowRight width={14} height={14} aria-hidden="true" /></a>
+				<a href={methodHref}>Call-graph accuracy <ArrowRight width={14} height={14} aria-hidden="true" /></a>
+			</div>
 		</div>
 	</div>
 </section>
@@ -374,6 +379,12 @@ const methodHref = withBase(import.meta.env.BASE_URL, 'docs/libeulix/call-graph-
 	.foot code {
 		color: var(--muted);
 		font-size: 0.95em;
+	}
+
+	.foot-links {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px 24px;
 	}
 
 	.foot a {

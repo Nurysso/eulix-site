@@ -1,0 +1,7 @@
+# Served at /eulix-site/robots.txt. Crawlers read robots.txt only at the
+# domain root (nurysso.github.io/robots.txt, from the Nurysso/nurysso.github.io
+# repo), so the rules that count live there; this copy documents the intent.
+User-agent: *
+Allow: /eulix-site/
+
+Sitemap: https://nurysso.github.io/eulix-site/sitemap-index.xml

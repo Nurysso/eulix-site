@@ -2,22 +2,45 @@
 import MagnifyingGlass from '@phosphor-icons/core/assets/regular/magnifying-glass.svg';
 import Docs from '../../layouts/Docs.astro';
 import StatusChip from '../../components/StatusChip.astro';
+import { HUBS } from '../../data/hubs.ts';
+import { withBase } from '../../lib/doc-paths.ts';
 import { getDocSections } from '../../lib/docs.ts';
+import { breadcrumbLd } from '../../lib/seo.ts';
 
 const sections = await getDocSections();
 const total = sections.reduce((n, s) => n + s.docs.length, 0);
+const base = import.meta.env.BASE_URL;
+const jsonLd = [
+	breadcrumbLd([
+		{ name: 'Eulix', path: '' },
+		{ name: 'Docs', path: 'docs/' },
+	]),
+];
 ---
 
 <Docs
-	title="Documentation"
-	description="Guides, architecture notes and internals for Eulix, generated from the docs folder of the repository."
+	title="Eulix documentation"
+	description="Guides, architecture notes and internals for Eulix, including the PRISM call graph and the ETIYA and EHNAS retrieval engines."
+	jsonLd={jsonLd}
 	sections={sections}
 >
 	<header class="intro">
-		<h1>Documentation</h1>
+		<h1>Eulix documentation</h1>
 		<p>
 			Every page here is rendered from the <code>docs/</code> folder of the repository, so it stays in step with the
 			code. {total} documents in {sections.length} sections.
+		</p>
+		<p class="hubs">
+			Start with an overview:
+			{
+				HUBS.map((h, i) => (
+					<>
+						{i > 0 && ', '}
+						<a href={withBase(base, `${h.slug}/`)}>{h.name}</a>
+					</>
+				))
+			}
+			.
 		</p>
 	</header>
 
@@ -90,6 +113,10 @@ const total = sections.reduce((n, s) => n + s.docs.length, 0);
 		margin-top: 14px;
 		max-width: 62ch;
 		color: var(--text-2);
+	}
+
+	.intro .hubs a {
+		color: var(--teal);
 	}
 
 	.intro code {

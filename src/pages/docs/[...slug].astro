@@ -4,8 +4,10 @@ import ArrowLeft from '@phosphor-icons/core/assets/regular/arrow-left.svg';
 import ArrowRight from '@phosphor-icons/core/assets/regular/arrow-right.svg';
 import PencilSimple from '@phosphor-icons/core/assets/regular/pencil-simple.svg';
 import Docs from '../../layouts/Docs.astro';
+import { hubsForDoc } from '../../data/hubs.ts';
 import { getAllDocs, getDocSections, getNeighbours } from '../../lib/docs.ts';
 import { withBase } from '../../lib/doc-paths.ts';
+import { breadcrumbLd, techArticleLd } from '../../lib/seo.ts';
 
 export async function getStaticPaths() {
 	const docs = await getAllDocs();
@@ -18,10 +20,43 @@ const doc = (await getAllDocs()).find((d) => d.id === id)!;
 const section = sections.find((s) => s.key === doc.section)!;
 const { Content, headings } = await render(doc.entry);
 const { prev, next } = await getNeighbours(id);
-const docsHome = withBase(import.meta.env.BASE_URL, 'docs/');
+const base = import.meta.env.BASE_URL;
+const docsHome = withBase(base, 'docs/');
+const hubs = hubsForDoc(id);
+
+// "Cache · eulix-cli · Eulix docs": the section names the component, which a
+// bare heading like "cache" doesn't. Skipped when the title already says it.
+const pageTitle = doc.seoTitle ?? doc.title;
+const squash = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+const sectionInTitle = !section.key || squash(pageTitle).includes(squash(section.label));
+const seoTitle = sectionInTitle ? `${pageTitle} · Eulix docs` : `${pageTitle} · ${section.label} · Eulix docs`;
+
+const path = `docs/${doc.id}/`;
+const jsonLd = [
+	techArticleLd({
+		headline: pageTitle,
+		description: doc.description,
+		path,
+		section: section.label,
+		about: hubs.map((h) => h.name),
+	}),
+	breadcrumbLd([
+		{ name: 'Eulix', path: '' },
+		{ name: 'Docs', path: 'docs/' },
+		{ name: pageTitle, path },
+	]),
+];
 ---
 
-<Docs title={doc.title} description={doc.description} sections={sections} currentId={doc.id} headings={headings}>
+<Docs
+	title={seoTitle}
+	rawTitle
+	description={doc.description}
+	jsonLd={jsonLd}
+	sections={sections}
+	currentId={doc.id}
+	headings={headings}
+>
 	<nav class="crumbs" aria-label="Breadcrumb">
 		<ol>
 			<li><a href={docsHome}>Docs</a></li>
@@ -33,6 +68,20 @@ const docsHome = withBase(import.meta.env.BASE_URL, 'docs/');
 		{!doc.hasH1 && <h1>{doc.title}</h1>}
 		<Content />
 	</article>
+
+	{
+		hubs.length > 0 && (
+			<aside class="hub-links" aria-label="Overview pages">
+				<span class="label">Overview</span>
+				{hubs.map((h) => (
+					<a href={withBase(base, `${h.slug}/`)}>
+						{h.name}: {h.h1.slice(h.name.length + 2)}
+						<ArrowRight width={14} height={14} aria-hidden="true" />
+					</a>
+				))}
+			</aside>
+		)
+	}
 
 	<footer class="doc-footer">
 		<a class="edit" href={doc.editUrl} rel="noopener">
@@ -92,6 +141,39 @@ const docsHome = withBase(import.meta.env.BASE_URL, 'docs/');
 	}
 
 	.crumbs a:hover {
+		color: var(--teal);
+	}
+
+	.hub-links {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 8px 20px;
+		max-width: 76ch;
+		margin-top: 48px;
+		padding: 14px 18px;
+		border: 1px solid var(--teal-line);
+		border-radius: var(--radius-panel);
+		background: var(--teal-wash);
+		font-size: 0.92rem;
+	}
+
+	.hub-links .label {
+		font-family: var(--font-mono);
+		font-size: 0.74rem;
+		color: var(--teal);
+	}
+
+	.hub-links a {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		min-height: 32px;
+		color: var(--text);
+		text-decoration: none;
+	}
+
+	.hub-links a:hover {
 		color: var(--teal);
 	}
 

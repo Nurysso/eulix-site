@@ -1,0 +1,318 @@
+---
+// /prism/, /etiya/, /ehnas/: one page per named part of Eulix (see src/data/hubs.ts).
+import ArrowRight from '@phosphor-icons/core/assets/regular/arrow-right.svg';
+import Grad from '../components/Grad.astro';
+import { HUBS, type Hub } from '../data/hubs.ts';
+import Base from '../layouts/Base.astro';
+import { withBase } from '../lib/doc-paths.ts';
+import { docUrl } from '../lib/docs.ts';
+import { breadcrumbLd, techArticleLd } from '../lib/seo.ts';
+import '../styles/prose.css';
+
+export function getStaticPaths() {
+	return HUBS.map((hub) => ({ params: { hub: hub.slug }, props: { hub } }));
+}
+
+const { hub } = Astro.props as { hub: Hub };
+const base = import.meta.env.BASE_URL;
+const home = withBase(base, '');
+const docs = await Promise.all(hub.docs.map(async (d) => ({ ...d, href: await docUrl(d.id) })));
+const others = HUBS.filter((h) => h.slug !== hub.slug);
+/** "PRISM, the call-graph builder in Eulix" → "The call-graph builder in Eulix." */
+const tagline = (h: Hub) => {
+	const rest = h.h1.slice(h.name.length + 2);
+	return `${rest[0].toUpperCase()}${rest.slice(1)}.`;
+};
+const path = `${hub.slug}/`;
+
+const jsonLd = [
+	techArticleLd({ headline: hub.h1, description: hub.description, path, about: [hub.name] }),
+	breadcrumbLd([
+		{ name: 'Eulix', path: '' },
+		{ name: hub.name, path },
+	]),
+];
+---
+
+<Base
+	title={hub.seoTitle}
+	rawTitle
+	description={hub.description}
+	type="article"
+	image={`og/${hub.slug}.png`}
+	imageAlt={`${hub.name}: ${hub.expansion}. Part of Eulix.`}
+	jsonLd={jsonLd}
+>
+	<div class="container hub">
+		<nav class="crumbs" aria-label="Breadcrumb">
+			<ol>
+				<li><a href={home}>Eulix</a></li>
+				<li><span aria-current="page">{hub.name}</span></li>
+			</ol>
+		</nav>
+
+		<header class="intro">
+			<p class="expansion mono">{hub.expansion}</p>
+			<h1><Grad word={hub.name} />{hub.h1.slice(hub.name.length)}</h1>
+			<p class="lead">{hub.lead}</p>
+		</header>
+
+		<dl class="facts">
+			{
+				hub.facts.map((f) => (
+					<div>
+						<dt>{f.label}</dt>
+						<dd>{f.value}</dd>
+					</div>
+				))
+			}
+		</dl>
+
+		<div class="prose">
+			{
+				hub.sections.map((section) => (
+					<Fragment>
+						<h2>{section.heading}</h2>
+						{section.paragraphs?.map((p) => <p>{p}</p>)}
+						{section.ordered && (
+							<ol>
+								{section.ordered.map((item) => <li>{item}</li>)}
+							</ol>
+						)}
+						{section.list && (
+							<ul>
+								{section.list.map((item) => (
+									<li>
+										<strong>{item.term}.</strong> {item.text}
+									</li>
+								))}
+							</ul>
+						)}
+					</Fragment>
+				))
+			}
+			{
+				hub.config && (
+					<Fragment>
+						<h2>Turn it on</h2>
+						<p>In your project’s eulix.toml:</p>
+						<pre class="config"><code>{hub.config}</code></pre>
+					</Fragment>
+				)
+			}
+		</div>
+
+		<section class="block" aria-labelledby="docs-title">
+			<h2 id="docs-title">{hub.name} documentation</h2>
+			<ul class="cards">
+				{
+					docs.map((d) => (
+						<li>
+							<a href={d.href}>
+								<span class="title">{d.label}</span>
+								<span class="desc">{d.note}</span>
+							</a>
+						</li>
+					))
+				}
+			</ul>
+		</section>
+
+		<section class="block" aria-labelledby="more-title">
+			<h2 id="more-title">More of Eulix</h2>
+			<ul class="cards">
+				{
+					others.map((o) => (
+						<li>
+							<a href={withBase(base, `${o.slug}/`)}>
+								<span class="title">{o.name}</span>
+								<span class="desc">{tagline(o)}</span>
+							</a>
+						</li>
+					))
+				}
+				<li>
+					<a href={`${home}${hub.homeAnchor}`}>
+						<span class="title">{hub.name} on the Eulix home page</span>
+						<span class="desc">Where it fits in the pipeline, with benchmarks.</span>
+					</a>
+				</li>
+			</ul>
+			<p class="back">
+				<a class="btn btn-ghost" href={withBase(base, 'docs/')}>All Eulix docs <ArrowRight width={16} height={16} aria-hidden="true" /></a>
+			</p>
+		</section>
+	</div>
+</Base>
+
+<style>
+	.hub {
+		padding-block: 40px 96px;
+	}
+
+	.crumbs ol {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		font-family: var(--font-mono);
+		font-size: 0.78rem;
+		color: var(--muted);
+	}
+
+	.crumbs li + li::before {
+		content: '/';
+		margin-right: 8px;
+		color: var(--faint);
+	}
+
+	.crumbs a {
+		color: var(--muted);
+		text-decoration: none;
+	}
+
+	.intro {
+		max-width: 76ch;
+		margin-top: 40px;
+	}
+
+	.expansion {
+		color: var(--teal);
+		font-size: 0.82rem;
+	}
+
+	h1 {
+		margin-top: 12px;
+		font-size: clamp(2.2rem, 1.6rem + 2.4vw, 3.4rem);
+		letter-spacing: -0.035em;
+		line-height: 1.08;
+	}
+
+	.lead {
+		margin-top: 18px;
+		color: var(--text-2);
+		font-size: 1.08rem;
+		line-height: 1.7;
+	}
+
+	.facts {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 1px;
+		max-width: 76ch;
+		margin: 36px 0 0;
+		border: 1px solid var(--line);
+		border-radius: var(--radius-panel);
+		background: var(--line);
+		overflow: hidden;
+	}
+
+	.facts div {
+		padding: 14px 16px;
+		background: var(--bg-raised);
+	}
+
+	.facts dt {
+		font-family: var(--font-mono);
+		font-size: 0.74rem;
+		color: var(--muted);
+	}
+
+	.facts dd {
+		margin: 4px 0 0;
+		color: var(--text);
+		font-size: 0.92rem;
+		line-height: 1.5;
+	}
+
+	.prose {
+		margin-top: 16px;
+	}
+
+	.config {
+		padding: 14px 16px;
+		border: 1px solid var(--line);
+		border-radius: var(--radius-control);
+		background: var(--bg-inset);
+		color: var(--gold);
+		font-family: var(--font-mono);
+		font-size: 0.88rem;
+		overflow-x: auto;
+	}
+
+	.block {
+		margin-top: 64px;
+	}
+
+	.block h2 {
+		font-size: 1.3rem;
+		letter-spacing: -0.02em;
+	}
+
+	.cards {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+		gap: 12px;
+		margin: 16px 0 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.cards a {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		height: 100%;
+		padding: 18px 20px;
+		border: 1px solid var(--line);
+		border-radius: var(--radius-panel);
+		background: var(--bg-raised);
+		text-decoration: none;
+		transition:
+			border-color 160ms var(--ease-out),
+			background-color 160ms var(--ease-out);
+	}
+
+	.title {
+		color: var(--text);
+		font-weight: 600;
+		line-height: 1.35;
+	}
+
+	.desc {
+		color: var(--muted);
+		font-size: 0.88rem;
+		line-height: 1.55;
+	}
+
+	.back {
+		margin-top: 24px;
+	}
+
+	.back .btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+	}
+
+	@media (max-width: 560px) {
+		.facts {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		.crumbs a:hover {
+			color: var(--teal);
+		}
+		.cards a:hover {
+			border-color: var(--teal-line);
+			background: var(--bg-panel);
+		}
+		.cards a:hover .title {
+			color: var(--teal);
+		}
+	}
+</style>

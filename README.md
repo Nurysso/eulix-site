@@ -35,7 +35,9 @@ Every Markdown file in the repository's `docs/` folder becomes a page under `/do
 
 - **Sidebar groups** follow the first folder level. Labels and order for known folders are in `DOC_SECTIONS` in `src/site.config.ts`; new folders appear automatically.
 - **Titles** come from the first `# heading`, and **descriptions** from the first paragraph. Frontmatter is optional.
-- **Order** inside a group: `PINNED_DOCS` first, then `README.md`, then file name (numeric-aware, so `02-…` before `10-…`).
+- **Order** inside a group: `PINNED_DOCS` first, then the folder's `README.md` or `Overview.md`, then file name (numeric-aware, so `02-…` before `10-…`).
+- **Left out:** ids in `EXCLUDED_DOCS` (the Sphinx-only `index.md`) and docs with `draft: true`.
+- **Search titles** are `<title> · <section> · Eulix docs`. When a doc's first heading makes a poor search result (`# 3 Methodology`), override its title or description in `DOC_SEO` in `src/site.config.ts`; the heading on the page stays as written.
 - **Links** between docs (`[x](./other.md#anchor)`) are rewritten to site URLs. Links to source files (`../../libeulix/src/foo.rs`) go to GitHub.
 - **GitHub alerts** (`> [!NOTE]`, `> [!WARNING]`, …) render as callouts.
 - **Mermaid** code blocks render as diagrams in the browser. Wide ones get an "Expand" button.
@@ -73,6 +75,10 @@ Versions are read from source at build time, so they never go stale:
 | `src/data/routing-demo.ts` | Queries, direct answers and etiya context windows shown in the routing demo, with provenance |
 | `src/styles/global.css` | Design tokens (colours from `eulix-cli/internal/utils/theme.go`) |
 | `src/components/landing/` | One component per landing-page section |
+| `src/components/SEO.astro` | Title, description, canonical, Open Graph, Twitter card, robots and JSON-LD for every page |
+| `src/lib/seo.ts` | JSON-LD builders (WebSite, SoftwareApplication, TechArticle, BreadcrumbList, author) |
+| `src/data/hubs.ts` | Content of `/prism/`, `/etiya/` and `/ehnas/`, and which docs each links to |
+| `public/og/` | 1200×630 social preview images: `eulix.png` for most pages, one per hub page |
 | `src/lib/markdown/plugins.ts` | Markdown plugins: link rewriting, alerts, Mermaid, tables |
 | `src/lib/markdown/shiki-theme.ts` | Code highlighting theme in the CLI palette |
 | `src/lib/docs.ts` | Titles, descriptions, sidebar order, prev/next |
@@ -85,7 +91,14 @@ The site is served from GitHub Pages at `https://nurysso.github.io/eulix-site/`,
 SITE_URL=https://nurysso.github.io SITE_BASE=/eulix-site/ pnpm build
 ```
 
-`SITE_BASE` must match the repo name, or links and assets break. `SITE_URL` gives Astro the site's public address, which adds a `<link rel="canonical">` and an `og:url` tag to every page (`src/layouts/Base.astro`). Without it those tags are left out.
+`SITE_BASE` must match the repo name, or links and assets break. `SITE_URL` is the site's public origin, used for canonical and `og:url` tags, the sitemap and JSON-LD; it falls back to `SITE.url` in `src/site.config.ts`.
+
+## SEO
+
+- `@astrojs/sitemap` writes `sitemap-index.xml` on every build (the 404 page is left out).
+- Crawlers only read `robots.txt` at the domain root, so the rules that count are in the `robots.txt` of the `Nurysso/nurysso.github.io` repo, which lists this site's sitemap. `public/robots.txt` here is served at `/eulix-site/robots.txt`; it states the same intent but crawlers don't read it.
+- `public/googlef01f55c07bef7f05.html` verifies the site in Google Search Console. Keep it.
+- Links to docs written in components go through `docUrl()` in `src/lib/docs.ts`, which fails the build if the doc no longer exists. Use it instead of hand-built `docs/...` paths, so a reorganisation of the eulix docs can't leave dead links.
 
 ## Credits
 

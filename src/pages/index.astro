@@ -13,9 +13,10 @@ import PrismBench from '../components/landing/PrismBench.astro';
 import ProofStrip from '../components/landing/ProofStrip.astro';
 import Routing from '../components/landing/Routing.astro';
 import Base from '../layouts/Base.astro';
+import { softwareLd, websiteLd } from '../lib/seo.ts';
 ---
 
-<Base>
+<Base jsonLd={[websiteLd(), softwareLd()]}>
 	<Hero />
 	<Demo />
 	<ProofStrip />

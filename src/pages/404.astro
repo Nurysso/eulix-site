@@ -5,7 +5,11 @@ import Base from '../layouts/Base.astro';
 const base = import.meta.env.BASE_URL;
 ---
 
-<Base title="Page not found">
+<Base
+	title="Page not found"
+	description="This page isn't in the Eulix site. Go back to the home page or browse the documentation."
+	noindex
+>
 	<section class="container nf">
 		<p class="mono code">404</p>
 		<h1>No symbol by that name.</h1>

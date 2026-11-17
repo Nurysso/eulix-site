@@ -1,6 +1,6 @@
 import { posix } from 'node:path';
 import { getCollection, type CollectionEntry } from 'astro:content';
-import { DOC_SECTIONS, PINNED_DOCS, SITE } from '../site.config.ts';
+import { DOC_SECTIONS, DOC_SEO, EXCLUDED_DOCS, PINNED_DOCS, SITE } from '../site.config.ts';
 import { getComponent, type Component } from './components.ts';
 import { ROOT_SECTION, sectionOf, withBase } from './doc-paths.ts';
 import { extractMarkdownMeta, stripEmoji, titleFromFileName, truncate } from './markdown/meta.ts';
@@ -15,6 +15,8 @@ export interface Doc {
 	/** Shorter label for the sidebar. */
 	navLabel: string;
 	description?: string;
+	/** Title for the <title> tag and search results, when it should differ from `title`. */
+	seoTitle?: string;
 	/** Whether the Markdown already starts with its own `# H1`. */
 	hasH1: boolean;
 	section: string;
@@ -72,11 +74,13 @@ function toDoc(entry: DocEntry): Doc {
 	const description =
 		entry.data.description ??
 		(meta.firstParagraph
-			? truncate(meta.firstParagraph.replace(/^(Purpose|Context|Summary|Overview):\s*/i, ''), 170)
+			? // 155 + the ellipsis keeps it inside the ~160 characters search results show.
+					truncate(meta.firstParagraph.replace(/^(Purpose|Context|Summary|Overview):\s*/i, ''), 155)
 			: undefined);
 
 	const pinned = PINNED_DOCS.indexOf(entry.id);
-	const isIndex = /^readme\.md$/i.test(fileName);
+	// A folder's README.md or Overview.md is its landing page.
+	const isIndex = /^(readme|overview)\.md$/i.test(fileName);
 	const order = entry.data.order ?? (pinned >= 0 ? pinned - 1000 : isIndex ? -500 : 0);
 
 	return {
@@ -84,7 +88,8 @@ function toDoc(entry: DocEntry): Doc {
 		entry,
 		title,
 		navLabel: entry.data.sidebarLabel ?? (isIndex ? 'Overview' : shortenForNav(title, section)),
-		description,
+		description: DOC_SEO[entry.id]?.description ?? description,
+		seoTitle: DOC_SEO[entry.id]?.title,
 		hasH1: Boolean(meta.h1) && !entry.data.title,
 		section,
 		repoPath,
@@ -105,7 +110,10 @@ let cache: Promise<DocSection[]> | undefined;
 /** All docs, grouped by section, in sidebar order. */
 export function getDocSections(): Promise<DocSection[]> {
 	cache ??= (async () => {
-		const entries = await getCollection('docs', (entry) => entry.data.draft !== true);
+		const entries = await getCollection(
+			'docs',
+			(entry) => entry.data.draft !== true && !EXCLUDED_DOCS.includes(entry.id),
+		);
 		const bySection = new Map<string, Doc[]>();
 		for (const doc of entries.map(toDoc)) {
 			const list = bySection.get(doc.section) ?? [];
@@ -133,6 +141,17 @@ export function getDocSections(): Promise<DocSection[]> {
 
 export async function getAllDocs(): Promise<Doc[]> {
 	return (await getDocSections()).flatMap((section) => section.docs);
+}
+
+/**
+ * URL of a doc, for links written by hand in components. Fails the build when
+ * the doc no longer exists, so a docs reorganisation in the eulix repo can't
+ * leave dead links behind.
+ */
+export async function docUrl(id: string, hash = ''): Promise<string> {
+	const doc = (await getAllDocs()).find((d) => d.id === id);
+	if (!doc) throw new Error(`Link to missing doc "${id}". Update the link, or the doc moved in the eulix repo.`);
+	return doc.href + hash;
 }
 
 export async function getNeighbours(id: string): Promise<{ prev?: Doc; next?: Doc }> {

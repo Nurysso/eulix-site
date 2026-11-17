@@ -5,21 +5,21 @@ import '../styles/prose.css';
 import Sidebar from '../components/docs/Sidebar.astro';
 import Toc from '../components/docs/Toc.astro';
 import type { DocSection } from '../lib/docs.ts';
+import type { Props as SeoProps } from '../components/SEO.astro';
 import Base from './Base.astro';
 
-interface Props {
+interface Props extends SeoProps {
 	title: string;
-	description?: string;
 	sections: DocSection[];
 	currentId?: string;
 	headings?: MarkdownHeading[];
 }
 
-const { title, description, sections, currentId, headings = [] } = Astro.props;
+const { sections, currentId, headings = [], ...seo } = Astro.props;
 const hasToc = headings.filter((h) => h.depth === 2 || h.depth === 3).length > 1;
 ---
 
-<Base title={title} description={description} current="docs" type="article">
+<Base type="article" {...seo} current="docs">
 	<div class:list={['docs-shell', 'container', { 'has-toc': hasToc }]}>
 		<button type="button" class="menu-toggle" aria-expanded="false" aria-controls="docs-sidebar">
 			<SidebarSimple width={18} height={18} aria-hidden="true" />

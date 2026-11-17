@@ -1,5 +1,7 @@
 ---
 import Grad from '../Grad.astro';
+import ArrowRight from '@phosphor-icons/core/assets/regular/arrow-right.svg';
+import { withBase } from '../../lib/doc-paths.ts';
 // The retrieval stack: two engines in eulix-cli, two embedders in eulix-embed.
 // Only etiya talks to an embedder; EHNAS reads no vectors at all.
 import CloudSlash from '@phosphor-icons/core/assets/regular/cloud-slash.svg';
@@ -12,6 +14,7 @@ import StatusChip from '../StatusChip.astro';
 
 const cli = getComponent('eulix-cli')!;
 const embed = getComponent('eulix-embed')!;
+const hubHref = (slug: string) => withBase(import.meta.env.BASE_URL, `${slug}/`);
 
 const ehnasMechanisms = [
   {
@@ -75,6 +78,7 @@ const ehnasMechanisms = [
           <pre
             class="config"><code><span class="c-sec">[project]</span>
 <span class="c-key">engine</span> = <span class="c-str">"ehnas"</span></code></pre>
+          <a class="more" href={hubHref('ehnas')}>How <Grad word="EHNAS" /> works <ArrowRight width={14} height={14} aria-hidden="true" /></a>
         </article>
 
         <article class="card engine etiya" aria-labelledby="etiya-title">
@@ -107,6 +111,7 @@ const ehnasMechanisms = [
           <pre
             class="config"><code><span class="c-sec">[project]</span>
 <span class="c-key">engine</span> = <span class="c-str">"etiya"</span></code></pre>
+          <a class="more" href={hubHref('etiya')}>How <Grad word="ETIYA" /> works <ArrowRight width={14} height={14} aria-hidden="true" /></a>
         </article>
       </div>
     </div>
@@ -311,6 +316,21 @@ const ehnasMechanisms = [
     color: var(--text-2);
     font-size: 0.9rem;
     line-height: 1.55;
+  }
+
+  .more {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 32px;
+    color: var(--teal);
+    font-size: 0.9rem;
+    text-decoration: none;
+  }
+
+  .more:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 
   .fact {

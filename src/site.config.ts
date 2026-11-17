@@ -4,8 +4,11 @@
 export const SITE = {
   name: 'Eulix',
   tagline: 'Local-first retrieval for AI agents',
+  /** Default meta description; keep it under ~160 characters so search results don't cut it. */
   description:
-    'Eulix answers code lookups directly from a structural index and returns ranked, token-budgeted context to your MCP client. Runs locally; no embeddings or GPU required with the EHNAS engine.',
+    'Eulix answers code questions from a local structural index: PRISM call graphs, ETIYA or EHNAS retrieval, and token-budgeted context for your MCP client.',
+  /** Public origin, used for canonical URLs, the sitemap and JSON-LD when SITE_URL isn't set. */
+  url: 'https://nurysso.github.io',
   repoUrl: 'https://github.com/Nurysso/eulix',
   branch: 'main',
   crateUrl: 'https://crates.io/crates/libeulix',
@@ -111,23 +114,43 @@ export interface DocSectionConfig {
  */
 export const DOC_SECTIONS: Record<string, DocSectionConfig> = {
   '': { label: 'General', order: 0 },
-  architecture: { label: 'Architecture', order: 1 },
-  'eulix-parser': { label: 'Parser', order: 2, component: 'eulix-parser' },
-  'eulix-embed': { label: 'Embedder', order: 3, component: 'eulix-embed' },
+  'eulix-cli': { label: 'eulix-cli', order: 1, component: 'eulix-cli' },
+  libeulix: { label: 'libeulix', order: 2, component: 'libeulix' },
+  'eulix-parser': { label: 'eulix-parser', order: 3, component: 'eulix-parser' },
+  'eulix-embed': { label: 'eulix-embed', order: 4, component: 'eulix-embed' },
+  vizEulize: { label: 'vizEulize', order: 5, component: 'vizEulize' },
+  Architecture: { label: 'Architecture', order: 6 },
+  'Known-Issues': { label: 'Known issues', order: 7 },
 };
 
 /**
- * Doc ids that should lead their section, in this order. Everything else is
- * sorted by file name (numeric-aware, so `02-…` comes before `10-…`).
- * A doc can also set `order: <number>` in its frontmatter.
+ * Doc ids that should lead their section, in this order. A folder's
+ * `Overview.md` comes next, then everything else by file name (numeric-aware,
+ * so `02-…` comes before `10-…`). A doc can also set `order: <number>` in its
+ * frontmatter.
  */
-export const PINNED_DOCS = [
-  'about-eulix',
-  'installation',
-  'models-to-use',
-  'query-package',
-  'known-issues',
-];
+export const PINNED_DOCS = ['welcome', 'installation', 'readme'];
 
 /** The doc the "Docs" entry points open first. */
-export const FIRST_DOC = 'about-eulix';
+export const FIRST_DOC = 'welcome';
+
+/** Doc ids left off the site. `index` only exists so Sphinx can build the docs. */
+export const EXCLUDED_DOCS = ['index'];
+
+/**
+ * Search-result overrides for docs whose first heading makes a poor page title
+ * (the H1 on the page itself is unchanged). Prefer fixing the heading in the
+ * eulix repo; use this when that heading is right for the doc but wrong for a
+ * search result.
+ */
+export const DOC_SEO: Record<string, { title?: string; description?: string }> = {
+  'libeulix/research/prism-v2-methodology': {
+    title: 'PRISM v2 methodology: the formal write-up',
+    description:
+      'The formal definition of PRISM v2, the scope-aware call-graph resolver in libeulix: inputs, indices, the resolution procedure, its properties and cost.',
+  },
+  'eulix-cli/query/retrieval/engines': {
+    description:
+      'ETIYA and EHNAS, the two retrieval engines in Eulix: how they differ, when to pick each, and how to switch with one line in eulix.toml.',
+  },
+};
