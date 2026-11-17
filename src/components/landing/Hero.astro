@@ -39,10 +39,10 @@ const answers = {
 				MCP server and CLI
 			</p>
 			<h1 id="hero-title" class="hero-in" style="--i: 1">
-				<span class="brand">Eulix:</span> <span class="nowrap">Local-First</span> Retrieval for <span class="nowrap">AI Agents.</span>
+				<span class="brand" aria-label="Eulix"><span class="r0" aria-hidden="true">E</span><span class="r10" aria-hidden="true">u</span><span class="r50" aria-hidden="true">l</span><span class="r70" aria-hidden="true">i</span><span class="r100" aria-hidden="true">x</span></span>: <span class="r-20 resolve" data-resolve><span class="nowrap">Local-First</span> Retrieval for <span class="nowrap">AI Agents.</span></span>
 			</h1>
 			<p class="lead hero-in" style="--i: 2">
-				Stop making your agent grep and guess. Eulix answers lookups directly from a structural index and returns
+				<span class="r-35 key">Stop making your agent grep and guess.</span> <span class="eulix">Eulix</span> answers lookups directly from a structural index and returns
 				ranked, token-budgeted context for your MCP client.
 			</p>
 			<ul class="points hero-in" style="--i: 3">
@@ -146,6 +146,14 @@ const answers = {
 </section>
 
 <script>
+	const resolveEl = document.querySelector<HTMLElement>('[data-resolve]');
+	if (resolveEl && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+		const levels = ['Redaction 100', 'Redaction 70', 'Redaction 50', 'Redaction 35', 'Redaction 20'];
+		Promise.all(levels.map((f) => document.fonts.load(`700 1em '${f}'`)))
+			.then(() => resolveEl.classList.add('is-resolving'))
+			.catch(() => {});
+	}
+
 	interface HeroQuery {
 		key: string;
 		query: string;
@@ -270,6 +278,7 @@ const answers = {
 </script>
 
 <style>
+
 	.hero {
 		position: relative;
 		overflow: hidden;
@@ -297,16 +306,25 @@ const answers = {
 
 	h1 {
 		margin-top: 18px;
-		max-width: 15ch;
-		font-size: clamp(2.4rem, 1.3rem + 3vw, 3.65rem);
-		font-weight: 620;
-		letter-spacing: -0.04em;
-		line-height: 1.04;
+		max-width: 14ch;
+		font-size: clamp(2.7rem, 1.4rem + 3.6vw, 4.4rem);
+		font-weight: 700;
+		letter-spacing: -0.015em;
+		line-height: 1;
 	}
 
 	.brand {
 		color: var(--teal);
+		font-weight: 700;
+		letter-spacing: 0;
 	}
+
+	/* Redaction (OFL 1.1 / LGPL 2.1), see src/fonts/redaction/OFL.txt */
+	.r0 { font-family: 'Redaction', serif; }
+	.r10 { font-family: 'Redaction 10', serif; }
+	.r50 { font-family: 'Redaction 50', serif; }
+	.r70 { font-family: 'Redaction 70', serif; }
+	.r100 { font-family: 'Redaction 100', serif; }
 
 	.nowrap {
 		white-space: nowrap;
@@ -660,6 +678,26 @@ const answers = {
 		}
 		.tags {
 			margin-left: 20px;
+		}
+	}
+
+	/* The headline sharpens through Redaction's levels, noise to answer.
+	   Starts only once every level has loaded (see script), so no fallback flash. */
+	.resolve.is-resolving {
+		animation: resolve 1100ms step-end 250ms both;
+	}
+
+	@keyframes resolve {
+		0% { font-family: 'Redaction 100', serif; }
+		20% { font-family: 'Redaction 70', serif; }
+		40% { font-family: 'Redaction 50', serif; }
+		60% { font-family: 'Redaction 35', serif; }
+		80%, 100% { font-family: 'Redaction 20', serif; }
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.resolve.is-resolving {
+			animation: none;
 		}
 	}
 

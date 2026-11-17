@@ -1,0 +1,13 @@
+---
+// A word set letter by letter across Redaction levels, like the hero "Eulix".
+interface Props {
+	word: string;
+}
+const { word } = Astro.props;
+const levels = [0, 10, 20, 35, 50, 70, 100];
+const n = word.length;
+const pick = (i: number) =>
+	n === 5 ? [0, 10, 50, 70, 100][i] : levels[Math.round((i * (levels.length - 1)) / Math.max(n - 1, 1))];
+---
+
+<span class="grad" aria-label={word}>{[...word].map((c, i) => <span class={`r-${pick(i)}`} aria-hidden="true">{c}</span>)}</span>

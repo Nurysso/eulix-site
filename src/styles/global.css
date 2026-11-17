@@ -12,6 +12,96 @@
  * Shape rule: controls 8px, panels 12px, chips fully rounded.
  */
 
+/* Redaction (OFL 1.1 / LGPL 2.1), see src/fonts/redaction/OFL.txt */
+@font-face {
+	font-family: 'Redaction';
+	src: url('../fonts/redaction/Redaction-Bold.woff2') format('woff2');
+	font-weight: 700;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Redaction';
+	src: url('../fonts/redaction/Redaction-Regular.woff2') format('woff2');
+	font-weight: 400;
+	font-display: swap;
+}
+@font-face {
+	font-family: 'Redaction 10';
+	src: url('../fonts/redaction/Redaction_10-Bold.woff2') format('woff2');
+	font-weight: 700;
+	font-display: swap;
+}
+@font-face {
+	font-family: 'Redaction 20';
+	src: url('../fonts/redaction/Redaction_20-Bold.woff2') format('woff2');
+	font-weight: 700;
+	font-display: swap;
+}
+@font-face {
+	font-family: 'Redaction 20';
+	src: url('../fonts/redaction/Redaction_20-Regular.woff2') format('woff2');
+	font-weight: 400;
+	font-display: swap;
+}
+@font-face {
+	font-family: 'Redaction 35';
+	src: url('../fonts/redaction/Redaction_35-Bold.woff2') format('woff2');
+	font-weight: 700;
+	font-display: swap;
+}
+@font-face {
+	font-family: 'Redaction 35';
+	src: url('../fonts/redaction/Redaction_35-Regular.woff2') format('woff2');
+	font-weight: 400;
+	font-display: swap;
+}
+@font-face {
+	font-family: 'Redaction 50';
+	src: url('../fonts/redaction/Redaction_50-Bold.woff2') format('woff2');
+	font-weight: 700;
+	font-display: swap;
+}
+@font-face {
+	font-family: 'Redaction 50';
+	src: url('../fonts/redaction/Redaction_50-Regular.woff2') format('woff2');
+	font-weight: 400;
+	font-display: swap;
+}
+@font-face {
+	font-family: 'Redaction 70';
+	src: url('../fonts/redaction/Redaction_70-Bold.woff2') format('woff2');
+	font-weight: 700;
+	font-display: swap;
+}
+@font-face {
+	font-family: 'Redaction 100';
+	src: url('../fonts/redaction/Redaction_100-Bold.woff2') format('woff2');
+	font-weight: 700;
+	font-display: swap;
+}
+
+/* Redaction levels: 20 for headings, 35 for key sentences, 50 for small labels. */
+.r-0 { font-family: 'Redaction', serif; }
+.r-10 { font-family: 'Redaction 10', serif; }
+.r-20 { font-family: 'Redaction 20', serif; }
+.r-35 { font-family: 'Redaction 35', serif; }
+.r-50 { font-family: 'Redaction 50', serif; }
+.r-70 { font-family: 'Redaction 70', serif; }
+.r-100 { font-family: 'Redaction 100', serif; }
+
+/* Extra gap before "Eulix" after sans text, so the font change doesn't read as one word. */
+.eulix.spaced { margin-left: 0.2em; }
+
+/* The product name, set in Redaction wherever it appears as "Eulix". */
+.key { font-weight: 700; color: var(--text); }
+
+.eulix {
+	font-family: 'Redaction', serif;
+	font-weight: 700;
+	letter-spacing: 0;
+}
+
 :root {
 	color-scheme: dark;
 
@@ -104,8 +194,9 @@ h2,
 h3,
 h4 {
 	margin: 0;
-	font-weight: 600;
-	letter-spacing: -0.025em;
+	font-family: 'Redaction', serif;
+	font-weight: 700;
+	letter-spacing: -0.01em;
 	line-height: 1.12;
 	text-wrap: balance;
 }
@@ -149,8 +240,11 @@ samp {
 }
 
 .section-title {
-	font-size: clamp(1.85rem, 1.2rem + 2.2vw, 2.9rem);
-	letter-spacing: -0.035em;
+	font-family: 'Redaction 20', serif;
+	font-weight: 700;
+	font-size: clamp(2.1rem, 1.3rem + 2.8vw, 3.4rem);
+	letter-spacing: -0.015em;
+	line-height: 1.05;
 	max-width: 22ch;
 }
 
@@ -166,7 +260,7 @@ samp {
 	display: inline-flex;
 	align-items: center;
 	gap: 10px;
-	font-family: var(--font-mono);
+	font-family: 'Redaction 50', var(--font-mono);
 	font-size: 0.78rem;
 	letter-spacing: 0.02em;
 	color: var(--muted);
@@ -443,4 +537,15 @@ html:not(.js) .reveal {
 		animation-duration: 0.01ms !important;
 		animation-iteration-count: 1 !important;
 	}
+}
+
+/* Gradient words (Grad.astro): PRISM, EHNAS, ETIYA. */
+.grad {
+	font-weight: 700;
+	letter-spacing: 0;
+}
+
+/* Redaction runs small beside Geist; nudge it up inside running text. */
+:is(p, li) :is(.grad, .eulix) {
+	font-size: 1.08em;
 }

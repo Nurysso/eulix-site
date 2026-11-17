@@ -98,7 +98,7 @@ const gaps = [
 				}
 			</ol>
 			<p class="section-lead reveal">
-				Eulix covers the space in between: callers, dependencies, types, subsystems, implementation paths and the
+				<span class="eulix">Eulix</span> covers the space in between: callers, dependencies, types, subsystems, implementation paths and the
 				surrounding context that gives a symbol its meaning.
 			</p>
 		</div>
@@ -109,7 +109,7 @@ const gaps = [
 				<thead>
 					<tr>
 						<th scope="col">Capability</th>
-						{tools.map((tool) => <th scope="col" class:list={{ us: tool === 'Eulix' }}>{tool}</th>)}
+						{tools.map((tool) => <th scope="col" class:list={{ us: tool === 'Eulix', eulix: tool === 'Eulix' }}>{tool}</th>)}
 					</tr>
 				</thead>
 				<tbody>

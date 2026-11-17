@@ -1,4 +1,5 @@
 ---
+import Grad from '../Grad.astro';
 import { Code } from 'astro:components';
 import { Image } from 'astro:assets';
 import ArrowUpRight from '@phosphor-icons/core/assets/regular/arrow-up-right.svg';
@@ -119,7 +120,7 @@ const status = (name: string) => getComponent(name)!.status;
 					<h3 id="lib-title">libeulix</h3>
 					<StatusChip status={status('libeulix')} version={versionOf('libeulix')} />
 				</div>
-				<p>The parsing, PRISM call-graph, indexing and metrics engine as a standalone Rust crate.</p>
+				<p>The parsing, <Grad word="PRISM" /> call-graph, indexing and metrics engine as a standalone Rust crate.</p>
 				<div class="cmd">
 					<code><span class="prompt">$ </span>cargo add libeulix</code>
 					<CopyButton text="cargo add libeulix" />

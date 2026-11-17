@@ -1,4 +1,5 @@
 ---
+import Grad from '../Grad.astro';
 import ArrowRight from '@phosphor-icons/core/assets/regular/arrow-right.svg';
 import { withBase } from '../../lib/doc-paths.ts';
 
@@ -70,10 +71,10 @@ const ranking = [
 				</div>
 
 				<p class="aside">
-					Call relationships come from <strong>PRISM</strong>, an approximate resolver built for speed at repository
+					Call relationships come from <strong><Grad word="PRISM" /></strong>, an approximate resolver built for speed at repository
 					scale rather than formal whole-program soundness.
 					<a href={withBase(base, 'docs/eulix-parser/call_graphs/')}>
-						How PRISM works <ArrowRight width={14} height={14} aria-hidden="true" />
+						How <Grad word="PRISM" /> works <ArrowRight width={14} height={14} aria-hidden="true" />
 					</a>
 				</p>
 			</article>

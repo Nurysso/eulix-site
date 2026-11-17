@@ -1,4 +1,5 @@
 ---
+import Grad from '../Grad.astro';
 import ArrowRight from '@phosphor-icons/core/assets/regular/arrow-right.svg';
 import { withBase } from '../../lib/doc-paths.ts';
 
@@ -30,7 +31,7 @@ const base = import.meta.env.BASE_URL;
 	<div class="container">
 		<h2 id="bench-title" class="section-title reveal">The Linux kernel, parsed in 54 seconds.</h2>
 		<p class="section-lead reveal">
-			64,460 source files and 37.3 million lines on 12 threads with PRISM v2. Nothing failed and nothing was skipped. Re-runs reuse a parse cache and finish in under 10 seconds.
+			64,460 source files and 37.3 million lines on 12 threads with <Grad word="PRISM" /> v2. Nothing failed and nothing was skipped. Re-runs reuse a parse cache and finish in under 10 seconds.
 		</p>
 
 		<div class="headline reveal">
@@ -79,7 +80,7 @@ const base = import.meta.env.BASE_URL;
 		<div class="foot reveal">
 			<p>
 				Local engineering runs. Results vary with hardware, repository state, parser configuration, embedding model and
-				query shape. Embedding is the slow stage at scale; with the EHNAS engine, <code>eulix analyze</code> skips it.
+				query shape. Embedding is the slow stage at scale; with the <Grad word="EHNAS" /> engine, <code>eulix analyze</code> skips it.
 			</p>
 			<a href={withBase(base, 'docs/eulix-parser/performance-notes/')}>
 				Parser benchmarks <ArrowRight width={14} height={14} aria-hidden="true" />
@@ -113,9 +114,10 @@ const base = import.meta.env.BASE_URL;
 		display: flex;
 		align-items: baseline;
 		gap: 6px;
-		font-size: clamp(4.5rem, 3rem + 6vw, 8rem);
-		font-weight: 600;
-		letter-spacing: -0.06em;
+		font-family: 'Redaction', serif;
+		font-size: clamp(5rem, 3.2rem + 7vw, 9rem);
+		font-weight: 700;
+		letter-spacing: -0.03em;
 		line-height: 0.9;
 		font-variant-numeric: tabular-nums;
 	}
@@ -232,9 +234,10 @@ const base = import.meta.env.BASE_URL;
 		flex-wrap: wrap;
 		align-items: baseline;
 		gap: 4px 8px;
-		font-size: clamp(1.8rem, 1.4rem + 1.2vw, 2.4rem);
-		font-weight: 600;
-		letter-spacing: -0.04em;
+		font-family: 'Redaction', serif;
+		font-size: clamp(2rem, 1.5rem + 1.4vw, 2.8rem);
+		font-weight: 700;
+		letter-spacing: -0.01em;
 		line-height: 1.05;
 		font-variant-numeric: tabular-nums;
 	}
