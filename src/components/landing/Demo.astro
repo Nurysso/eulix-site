@@ -1,0 +1,199 @@
+---
+import Play from '@phosphor-icons/core/assets/fill/play-fill.svg';
+
+// Media from the eulix README (GitHub user-attachments).
+const VIDEO = 'https://github.com/user-attachments/assets/5c6cedc8-4ff4-4626-a90c-2eaaa2c7f3fd';
+const TEASER = 'https://github.com/user-attachments/assets/2e492176-e9ac-4353-84c5-5a4c8a55f1b6';
+
+const stats = [
+	{ value: '98.6%', label: "of PRISM's call edges are right" },
+	{ value: '< 20 ms', label: 'per warm query (p50)' },
+	{ value: '< 90 MB', label: 'MCP server memory' },
+	{ value: '53.9 s', label: 'to parse the Linux kernel, call graph included' },
+	{ value: '< 10 s', label: 'to re-parse it incrementally' },
+];
+---
+
+<section class="section demo" id="demo" aria-labelledby="demo-title">
+	<div class="container">
+		<h2 id="demo-title" class="section-title reveal">One question, one ranked reply.</h2>
+		<p class="section-lead reveal">
+			Claude Code asks Eulix how Flask stores its session cookie over MCP, then answers from the context it gets back.
+		</p>
+
+		<div class="player reveal" data-demo>
+			<button type="button" class="poster" data-demo-play aria-label="Play the 2-minute walkthrough">
+				<img
+					src={TEASER}
+					width="1328"
+					height="730"
+					loading="lazy"
+					decoding="async"
+					alt="Claude Code asks Eulix how Flask stores its session cookie over MCP and answers from the ranked context"
+				/>
+				<span class="play"><Play width={22} height={22} aria-hidden="true" /> Watch the 2-minute walkthrough</span>
+			</button>
+			<noscript><a class="fallback" href={VIDEO}>Open the walkthrough video</a></noscript>
+			<template data-demo-video>
+				<video src={VIDEO} controls autoplay playsinline preload="auto"></video>
+			</template>
+		</div>
+
+		<ul class="stats" aria-label="Headline numbers">
+			{
+				stats.map((s, i) => (
+					<li class="reveal" style={`--reveal-index: ${i}`}>
+						<p class="value">{s.value}</p>
+						<p class="label">{s.label}</p>
+					</li>
+				))
+			}
+		</ul>
+		<p class="note">
+			PRISM v2 on eight open-source projects, one per language, checked against each language's own compiler tooling.
+			Queries: EHNAS, v0.9.0, five open-source repos on a Ryzen 5 5600X. Kernel: 37.3M lines on 12 threads.
+		</p>
+	</div>
+</section>
+
+<script>
+	for (const root of document.querySelectorAll<HTMLElement>('[data-demo]')) {
+		const button = root.querySelector<HTMLButtonElement>('[data-demo-play]');
+		const tpl = root.querySelector<HTMLTemplateElement>('[data-demo-video]');
+		button?.addEventListener('click', () => {
+			if (!tpl) return;
+			const video = tpl.content.firstElementChild!.cloneNode(true) as HTMLVideoElement;
+			button.replaceWith(video);
+			video.play().catch(() => {});
+		});
+	}
+</script>
+
+<style>
+	.player {
+		margin-top: 40px;
+		padding: 6px;
+		border: 1px solid var(--line-strong);
+		border-radius: var(--radius-panel);
+		background: var(--bg-inset);
+	}
+
+	.poster {
+		position: relative;
+		display: block;
+		width: 100%;
+		padding: 0;
+		border: 0;
+		border-radius: 8px;
+		background: none;
+		cursor: pointer;
+		overflow: hidden;
+	}
+
+	.poster img,
+	.player :global(video) {
+		display: block;
+		width: 100%;
+		height: auto;
+		aspect-ratio: 1328 / 730;
+		border-radius: 8px;
+		background: var(--bg);
+	}
+
+	.play {
+		position: absolute;
+		left: 50%;
+		bottom: 20px;
+		transform: translateX(-50%);
+		display: inline-flex;
+		align-items: center;
+		gap: 10px;
+		padding: 10px 18px;
+		border: 1px solid var(--teal-line);
+		border-radius: 999px;
+		background: rgb(10 11 14 / 0.85);
+		color: var(--text);
+		font-size: 0.9rem;
+		white-space: nowrap;
+		backdrop-filter: blur(6px);
+		transition: border-color 160ms var(--ease-out);
+	}
+
+	.play :global(svg) {
+		color: var(--teal);
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		.poster:hover .play {
+			border-color: var(--teal);
+		}
+	}
+
+	.poster:focus-visible {
+		outline: 2px solid var(--teal);
+		outline-offset: 3px;
+	}
+
+	.fallback {
+		display: block;
+		padding: 12px;
+		color: var(--teal);
+	}
+
+	.stats {
+		display: grid;
+		grid-template-columns: repeat(5, 1fr);
+		gap: 1px;
+		margin: 20px 0 0;
+		padding: 0;
+		list-style: none;
+		border: 1px solid var(--line);
+		border-radius: var(--radius-panel);
+		background: var(--line);
+		overflow: hidden;
+	}
+
+	.stats li {
+		padding: 20px;
+		background: var(--bg-raised);
+	}
+
+	.value {
+		font-size: clamp(1.5rem, 1.2rem + 1vw, 2rem);
+		font-weight: 600;
+		letter-spacing: -0.04em;
+		font-variant-numeric: tabular-nums;
+		color: var(--text);
+	}
+
+	.label {
+		margin-top: 8px;
+		color: var(--muted);
+		font-size: 0.85rem;
+		line-height: 1.5;
+	}
+
+	.note {
+		margin-top: 14px;
+		max-width: 90ch;
+		color: var(--faint);
+		font-size: 0.8rem;
+	}
+
+	@media (max-width: 960px) {
+		.stats {
+			grid-template-columns: repeat(2, 1fr);
+		}
+		.stats li:last-child {
+			grid-column: span 2;
+		}
+	}
+
+	@media (max-width: 520px) {
+		.play {
+			bottom: 10px;
+			padding: 8px 14px;
+			font-size: 0.8rem;
+		}
+	}
+</style>

@@ -2,25 +2,25 @@
 import ArrowRight from '@phosphor-icons/core/assets/regular/arrow-right.svg';
 import { withBase } from '../../lib/doc-paths.ts';
 
-// Linux kernel run from the README (12 threads, PRISM v2).
-const total = 57.2;
+// Linux kernel run from the README (v0.9.0, 12 threads, PRISM v2, median of 3 cold runs).
+const total = 53.85;
 const phases = [
-	{ name: 'Parse', seconds: 52.23, tone: 'parse' },
-	{ name: 'Call graphs (PRISM v2)', seconds: 1.34, tone: 'graph' },
-	{ name: 'Summary and metrics', seconds: 0.34, tone: 'summary' },
+	{ name: 'Parse', seconds: 48.69, tone: 'parse' },
+	{ name: 'Call graphs (PRISM v2)', seconds: 1.99, tone: 'graph' },
+	{ name: 'Summary and metrics', seconds: 0.26, tone: 'summary' },
 ];
 const accounted = phases.reduce((sum, p) => sum + p.seconds, 0);
 const segments = [...phases, { name: 'Other', seconds: Number((total - accounted).toFixed(2)), tone: 'other' }];
 
 const stats = [
-	{ value: '~650K', unit: 'lines / s', text: 'End-to-end parser throughput on 12 threads.' },
-	{ value: '1.51M', unit: 'edges', text: 'Call graph of 773,072 nodes, extracted with zero parse failures.' },
+	{ value: '~693K', unit: 'lines / s', text: 'End-to-end parser throughput on 12 threads.' },
+	{ value: '1.51M', unit: 'edges', text: 'Call graph of 774,876 nodes, extracted with zero parse failures.' },
 	{
 		value: '837,531',
 		unit: 'chunks',
 		text: 'Embedded locally in 26 min 27 s on one AMD Radeon RX 6700 XT, at 527.6 chunks / s.',
 	},
-	{ value: '~3.3', unit: 'GiB peak', text: 'Spill-to-disk serialization cut peak memory from about 8 GB.' },
+	{ value: '~3.7', unit: 'GB peak', text: 'Spill-to-disk serialization cut peak memory from about 8 GB.' },
 ];
 
 const base = import.meta.env.BASE_URL;
@@ -28,15 +28,15 @@ const base = import.meta.env.BASE_URL;
 
 <section class="section" id="benchmarks" aria-labelledby="bench-title">
 	<div class="container">
-		<h2 id="bench-title" class="section-title reveal">The Linux kernel, parsed in 57 seconds.</h2>
+		<h2 id="bench-title" class="section-title reveal">The Linux kernel, parsed in 54 seconds.</h2>
 		<p class="section-lead reveal">
-			64,460 source files and 37.3 million lines on 12 threads with PRISM v2. Nothing failed and nothing was skipped.
+			64,460 source files and 37.3 million lines on 12 threads with PRISM v2. Nothing failed and nothing was skipped. Re-runs reuse a parse cache and finish in under 10 seconds.
 		</p>
 
 		<div class="headline reveal">
 			<div class="big">
-				<p class="figure"><span>57.2</span><small>s</small></p>
-				<p class="caption">parser total, 37,322,700 lines</p>
+				<p class="figure"><span>53.9</span><small>s</small></p>
+				<p class="caption">parser total, 37,322,695 lines</p>
 			</div>
 
 			<div class="phases">
@@ -81,7 +81,7 @@ const base = import.meta.env.BASE_URL;
 				Local engineering runs. Results vary with hardware, repository state, parser configuration, embedding model and
 				query shape. Embedding is the slow stage at scale; with the EHNAS engine, <code>eulix analyze</code> skips it.
 			</p>
-			<a href={withBase(base, 'docs/eulix-parser/benchmark/')}>
+			<a href={withBase(base, 'docs/eulix-parser/performance-notes/')}>
 				Parser benchmarks <ArrowRight width={14} height={14} aria-hidden="true" />
 			</a>
 		</div>

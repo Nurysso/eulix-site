@@ -21,6 +21,8 @@ const mcpConfig = `{
   }
 }`;
 
+const claudeCmd = 'claude mcp add eulix -- eulix mcp --repo "$PWD"';
+
 const mcpTools = ['query', 'query_with_cot', 'query_without_cot', 'set_repo_path'];
 const commands = ['init', 'analyze', 'chat', 'query', 'mcp', 'vizEulize', 'embed', 'history'];
 const lspFeatures = [
@@ -98,6 +100,12 @@ const status = (name: string) => getComponent(name)!.status;
 					An MCP server over stdio. Claude Code, Windsurf, Cline, Continue and LM Studio can query any analyzed
 					repository and get ranked source context back.
 				</p>
+				<p class="client mono">Claude Code</p>
+				<div class="cmd">
+					<code><span class="prompt">$ </span>{claudeCmd}</code>
+					<CopyButton text={claudeCmd} />
+				</div>
+				<p class="client mono">Cursor, Windsurf, Cline and other clients</p>
 				<div class="snippet">
 					<Code code={mcpConfig} lang="json" theme={eulixShikiTheme} />
 				</div>
@@ -288,6 +296,12 @@ const status = (name: string) => getComponent(name)!.status;
 
 	.mcp .tags {
 		margin-top: auto;
+	}
+
+	.client {
+		margin-bottom: -6px;
+		color: var(--muted);
+		font-size: 0.75rem;
 	}
 
 	.mcp .tags li {

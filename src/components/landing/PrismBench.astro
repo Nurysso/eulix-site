@@ -1,0 +1,410 @@
+---
+import ArrowRight from '@phosphor-icons/core/assets/regular/arrow-right.svg';
+import { byLanguage, corpora, corpusTotals, headline, langLabel } from '../../data/prism-bench.ts';
+import { withBase } from '../../lib/doc-paths.ts';
+
+const pct = (n: number) => `${n.toFixed(1)}%`;
+const allPrecision = (corpusTotals.tp / (corpusTotals.tp + corpusTotals.fp)) * 100;
+const methodHref = withBase(import.meta.env.BASE_URL, 'docs/libeulix/call-graph-accuracy/');
+---
+
+<section class="section" id="prism" aria-labelledby="prism-title">
+	<div class="container">
+		<h2 id="prism-title" class="section-title reveal">When PRISM draws an edge, it's right.</h2>
+		<p class="section-lead reveal">
+			PRISM v2 builds the call graph from syntax alone, with no build step and no type checker. Every edge was checked
+			against the call sites each language's own compiler tooling resolves. When a name is too ambiguous to guess, PRISM
+			leaves the edge out: a missing edge misleads retrieval less than a wrong one.
+		</p>
+
+		<div class="headline reveal">
+			<div class="big">
+				<p class="figure"><span>{headline.precisionV2}</span><small>%</small></p>
+				<p class="caption">
+					of call edges correct · {headline.wrongV2} wrong out of {headline.edgesV2.toLocaleString('en-US')}
+				</p>
+				<div class="versus">
+					<div class="vrow">
+						<span class="vname mono">v2</span>
+						<span class="track"><span class="fill v2" style={`width: ${headline.precisionV2}%`}></span></span>
+						<span class="vval mono">{pct(headline.precisionV2)}</span>
+					</div>
+					<div class="vrow">
+						<span class="vname mono">v1</span>
+						<span class="track"><span class="fill v1" style={`width: ${headline.precisionV1}%`}></span></span>
+						<span class="vval mono">{pct(headline.precisionV1)}</span>
+					</div>
+				</div>
+				<p class="caption small">
+					Eight projects, one per language. v1 got {headline.wrongV1.toLocaleString('en-US')} of
+					{' '}{headline.edgesV1.toLocaleString('en-US')} wrong.
+				</p>
+			</div>
+
+			<div class="langs">
+				<p class="langs-title mono">Precision by language · v1 → v2 · 24 projects pooled</p>
+				<ul class="lang-list">
+					{
+						byLanguage.map((l) => (
+							<li>
+								<span class="lname">{langLabel[l.lang]}</span>
+								<span class="track" role="img" aria-label={`${langLabel[l.lang]}: v1 ${pct(l.v1.p)}, v2 ${pct(l.v2.p)} precision`}>
+									<span class="fill v2" style={`width: ${l.v2.p}%`} />
+									<span class="tick" style={`left: ${l.v1.p}%`} title={`v1 ${pct(l.v1.p)}`} />
+								</span>
+								<span class="lval mono">
+									{pct(l.v2.p)}
+									<span class="was">from {pct(l.v1.p)}</span>
+								</span>
+							</li>
+						))
+					}
+				</ul>
+				<p class="legend">
+					<span><span class="key v2" aria-hidden="true" /> v2 precision</span>
+					<span><span class="key tick-key" aria-hidden="true" /> v1 precision</span>
+				</p>
+			</div>
+		</div>
+
+		<details class="raw reveal">
+			<summary>
+				All 24 projects · {pct(allPrecision)} precision across {(corpusTotals.tp + corpusTotals.fp).toLocaleString('en-US')} edges
+			</summary>
+			<div class="table-wrap">
+				<table>
+					<thead>
+						<tr>
+							<th scope="col">Project</th>
+							<th scope="col">Language</th>
+							<th scope="col" class="num">Edges</th>
+							<th scope="col" class="num">Wrong</th>
+							<th scope="col" class="num">Precision</th>
+							<th scope="col" class="num">Recall</th>
+							<th scope="col" class="num">F1</th>
+						</tr>
+					</thead>
+					<tbody>
+						{
+							corpora.map((c) => (
+								<tr>
+									<th scope="row" class="mono">{c.name}</th>
+									<td>{langLabel[c.lang]}</td>
+									<td class="num">{(c.tp + c.fp).toLocaleString('en-US')}</td>
+									<td class={`num ${c.fp === 0 ? 'zero' : ''}`}>{c.fp}</td>
+									<td class="num">{pct(c.p)}</td>
+									<td class="num">{pct(c.r)}</td>
+									<td class="num">{pct(c.f1)}</td>
+								</tr>
+							))
+						}
+					</tbody>
+				</table>
+			</div>
+		</details>
+
+		<div class="foot reveal">
+			<p>
+				Recall is the trade: PRISM skips calls whose receiver type isn't written in the source, so Rust and C++ miss
+				more edges than they get wrong. Reference tools: go/types, javac, jedi, rust-analyzer, the TypeScript checker
+				and libclang. PHP isn't measured. Reproduce with <code>make bench-callgraph</code>.
+			</p>
+			<a href={methodHref}>Call-graph accuracy <ArrowRight width={14} height={14} aria-hidden="true" /></a>
+		</div>
+	</div>
+</section>
+
+<style>
+	.headline {
+		display: grid;
+		grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+		margin-top: 48px;
+		border: 1px solid var(--line);
+		border-radius: var(--radius-panel);
+		overflow: hidden;
+	}
+
+	.big {
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-end;
+		gap: 14px;
+		padding: clamp(24px, 4vw, 40px);
+		background:
+			radial-gradient(ellipse 80% 90% at 0% 100%, rgb(167 139 250 / 0.12), transparent 70%),
+			var(--bg-raised);
+		border-right: 1px solid var(--line);
+	}
+
+	.figure {
+		display: flex;
+		align-items: baseline;
+		gap: 6px;
+		font-size: clamp(4.5rem, 3rem + 6vw, 8rem);
+		font-weight: 600;
+		letter-spacing: -0.06em;
+		line-height: 0.9;
+		font-variant-numeric: tabular-nums;
+	}
+
+	.figure small {
+		font-size: 0.35em;
+		letter-spacing: -0.02em;
+		color: var(--violet);
+	}
+
+	.caption {
+		font-family: var(--font-mono);
+		font-size: 0.8rem;
+		color: var(--muted);
+	}
+
+	.caption.small {
+		font-size: 0.75rem;
+		color: var(--faint);
+	}
+
+	.versus {
+		display: grid;
+		gap: 8px;
+		margin-top: 10px;
+	}
+
+	.vrow,
+	.lang-list li {
+		display: grid;
+		grid-template-columns: 28px minmax(0, 1fr) 64px;
+		align-items: center;
+		gap: 12px;
+	}
+
+	.vname {
+		color: var(--text-2);
+		font-size: 0.8rem;
+	}
+
+	.vval {
+		text-align: right;
+		font-size: 0.82rem;
+		color: var(--text);
+		font-variant-numeric: tabular-nums;
+	}
+
+	.track {
+		position: relative;
+		display: block;
+		height: 10px;
+		border-radius: 999px;
+		background: var(--bg-inset);
+		box-shadow: inset 0 0 0 1px var(--line);
+	}
+
+	.fill {
+		position: absolute;
+		inset: 0 auto 0 0;
+		border-radius: 999px;
+	}
+
+	.fill.v2,
+	.key.v2 {
+		background: var(--violet);
+	}
+
+	.fill.v1 {
+		background: #3a4050;
+	}
+
+	.tick {
+		position: absolute;
+		top: -3px;
+		bottom: -3px;
+		width: 2px;
+		margin-left: -1px;
+		background: var(--text);
+		border-radius: 1px;
+	}
+
+	.langs {
+		padding: clamp(24px, 4vw, 40px);
+		background: var(--bg);
+	}
+
+	.langs-title {
+		font-size: 0.78rem;
+		color: var(--muted);
+	}
+
+	.lang-list {
+		display: grid;
+		gap: 14px;
+		margin: 20px 0 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.lang-list li {
+		grid-template-columns: 92px minmax(0, 1fr) 130px;
+	}
+
+	.lname {
+		color: var(--text-2);
+		font-size: 0.9rem;
+	}
+
+	.lval {
+		display: flex;
+		align-items: baseline;
+		justify-content: flex-end;
+		gap: 8px;
+		font-size: 0.85rem;
+		font-variant-numeric: tabular-nums;
+	}
+
+	.was {
+		color: var(--faint);
+		font-size: 0.75rem;
+	}
+
+	.legend {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px 20px;
+		margin-top: 20px;
+		color: var(--muted);
+		font-size: 0.8rem;
+	}
+
+	.legend > span {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+	}
+
+	.key {
+		display: inline-block;
+		width: 12px;
+		height: 10px;
+		border-radius: 3px;
+	}
+
+	.tick-key {
+		width: 2px;
+		height: 14px;
+		background: var(--text);
+	}
+
+	.raw {
+		margin-top: 20px;
+		border: 1px solid var(--line);
+		border-radius: var(--radius-panel);
+		background: var(--bg-raised);
+	}
+
+	.raw summary {
+		padding: 16px 20px;
+		color: var(--text-2);
+		font-size: 0.9rem;
+		cursor: pointer;
+	}
+
+	.table-wrap {
+		overflow-x: auto;
+		border-top: 1px solid var(--line);
+	}
+
+	table {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: 0.85rem;
+	}
+
+	th,
+	td {
+		padding: 10px 20px;
+		text-align: left;
+		white-space: nowrap;
+		border-bottom: 1px solid var(--line);
+	}
+
+	thead th {
+		color: var(--muted);
+		font-weight: 500;
+		font-size: 0.78rem;
+	}
+
+	tbody th {
+		font-weight: 400;
+		color: var(--text);
+	}
+
+	td {
+		color: var(--text-2);
+	}
+
+	tbody tr:last-child > * {
+		border-bottom: 0;
+	}
+
+	.num {
+		text-align: right;
+		font-variant-numeric: tabular-nums;
+	}
+
+	.zero {
+		color: var(--emerald);
+	}
+
+	.foot {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 12px 32px;
+		margin-top: 20px;
+		color: var(--faint);
+		font-size: 0.84rem;
+	}
+
+	.foot p {
+		max-width: 78ch;
+	}
+
+	.foot code {
+		color: var(--muted);
+		font-size: 0.95em;
+	}
+
+	.foot a {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		color: var(--teal);
+		text-decoration: none;
+		white-space: nowrap;
+		font-size: 0.9rem;
+	}
+
+	.foot a:hover {
+		text-decoration: underline;
+		text-underline-offset: 3px;
+	}
+
+	@media (max-width: 960px) {
+		.headline {
+			grid-template-columns: 1fr;
+		}
+		.big {
+			border-right: 0;
+			border-bottom: 1px solid var(--line);
+		}
+	}
+
+	@media (max-width: 520px) {
+		.lang-list li {
+			grid-template-columns: 76px minmax(0, 1fr) 54px;
+		}
+		.was {
+			display: none;
+		}
+	}
+</style>

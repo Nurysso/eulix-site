@@ -94,8 +94,8 @@ export const COMPONENTS: ComponentConfig[] = [
   },
 ];
 
-/** `eulix mcp` ships inside eulix-cli but is still in beta. */
-export const MCP_STATUS: ComponentStatus = 'beta';
+/** `eulix mcp` ships inside eulix-cli. */
+export const MCP_STATUS: ComponentStatus = 'stable';
 
 export interface DocSectionConfig {
   label: string;
